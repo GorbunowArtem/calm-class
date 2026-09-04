@@ -1,3 +1,5 @@
+namespace CalmClass.Functions.Functions;
+
 using System.Net;
 using System.Text.Json;
 using CalmClass.Application.Features.Polls.Commands.CancelPoll;
@@ -7,8 +9,6 @@ using CalmClass.Application.Features.Polls.Commands.IngestVote;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-
-namespace CalmClass.Functions.Functions;
 
 public class TelegramWebhookFunction(
     CreatePollCommandHandler createPollHandler,

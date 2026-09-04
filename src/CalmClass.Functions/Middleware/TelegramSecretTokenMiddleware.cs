@@ -1,3 +1,5 @@
+namespace CalmClass.Functions.Middleware;
+
 using System.Net;
 using CalmClass.Application.Common.Options;
 using Microsoft.Azure.Functions.Worker;
@@ -5,8 +7,6 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
-namespace CalmClass.Functions.Middleware;
 
 public class TelegramSecretTokenMiddleware(
     IOptions<CalmClassOptions> options,

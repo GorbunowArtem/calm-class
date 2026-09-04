@@ -1,16 +1,14 @@
+namespace CalmClass.Infrastructure.Telegram;
+
 using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
 
-namespace CalmClass.Infrastructure.Telegram;
-
 public static class TelegramResiliencePipeline
 {
-    public static ResiliencePipeline<HttpResponseMessage> CreatePipeline(ILogger? logger = null)
-    {
-        return new ResiliencePipelineBuilder<HttpResponseMessage>()
+    public static ResiliencePipeline<HttpResponseMessage> CreatePipeline(ILogger? logger = null) => new ResiliencePipelineBuilder<HttpResponseMessage>()
             .AddRetry(new RetryStrategyOptions<HttpResponseMessage>
             {
                 MaxRetryAttempts = 3,
@@ -74,5 +72,4 @@ public static class TelegramResiliencePipeline
                 }
             })
             .Build();
-    }
 }

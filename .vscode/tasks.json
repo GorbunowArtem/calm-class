@@ -35,7 +35,7 @@
       "type": "shell",
       "dependsOn": "build",
       "options": {
-        "cwd": "${workspaceFolder}/src/CalmClass.Functions"
+        "cwd": "${workspaceFolder}/src/CalmClass.Functions/bin/Debug/net10.0"
       },
       "command": "func start",
       "isBackground": true,

@@ -1,6 +1,6 @@
-using System.Text;
-
 namespace CalmClass.Application.Features.Polls.Localization;
+
+using System.Text;
 
 public static class UkrainianPollMessages
 {

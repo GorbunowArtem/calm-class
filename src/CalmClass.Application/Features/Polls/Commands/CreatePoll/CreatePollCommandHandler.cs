@@ -1,3 +1,5 @@
+namespace CalmClass.Application.Features.Polls.Commands.CreatePoll;
+
 using System.Text.RegularExpressions;
 using CalmClass.Application.Common.Interfaces;
 using CalmClass.Application.Common.Options;
@@ -6,8 +8,6 @@ using CalmClass.Application.Domain.Enums;
 using CalmClass.Application.Features.Polls.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
-namespace CalmClass.Application.Features.Polls.Commands.CreatePoll;
 
 public record CreatePollCommand
 {

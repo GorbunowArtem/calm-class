@@ -1,72 +1,42 @@
+namespace CalmClass.Infrastructure.Persistence.Documents;
+
 using System.Text.Json.Serialization;
 using CalmClass.Application.Domain.Entities;
 using CalmClass.Application.Domain.Enums;
 
-namespace CalmClass.Infrastructure.Persistence.Documents;
-
-public record TrackedPollDocument
+public record TrackedPollDocument(
+    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("chatId")] string ChatId,
+    [property: JsonPropertyName("pollId")] string PollId,
+    [property: JsonPropertyName("messageId")] int MessageId,
+    [property: JsonPropertyName("question")] string Question,
+    [property: JsonPropertyName("options")] IReadOnlyList<string> Options,
+    [property: JsonPropertyName("allowsMultipleAnswers")] bool AllowsMultipleAnswers,
+    [property: JsonPropertyName("createdAtUtc")] DateTime CreatedAtUtc,
+    [property: JsonPropertyName("expiresAtUtc")] DateTime ExpiresAtUtc,
+    [property: JsonPropertyName("status")] string Status,
+    [property: JsonPropertyName("remindedAtUtc")] DateTime? RemindedAtUtc = null,
+    [property: JsonPropertyName("closedAtUtc")] DateTime? ClosedAtUtc = null,
+    [property: JsonPropertyName("_etag")] string? ETag = null,
+    [property: JsonPropertyName("type")] string Type = TrackedPollDocument.DocumentType)
 {
     public const string DocumentType = "TrackedPoll";
 
-    [JsonPropertyName("id")]
-    public required string Id { get; init; }
-
-    [JsonPropertyName("chatId")]
-    public required string ChatId { get; init; }
-
-    [JsonPropertyName("type")]
-    public string Type { get; init; } = DocumentType;
-
-    [JsonPropertyName("pollId")]
-    public required string PollId { get; init; }
-
-    [JsonPropertyName("messageId")]
-    public required int MessageId { get; init; }
-
-    [JsonPropertyName("question")]
-    public required string Question { get; init; }
-
-    [JsonPropertyName("options")]
-    public required IReadOnlyList<string> Options { get; init; }
-
-    [JsonPropertyName("allowsMultipleAnswers")]
-    public bool AllowsMultipleAnswers { get; init; }
-
-    [JsonPropertyName("createdAtUtc")]
-    public required DateTime CreatedAtUtc { get; init; }
-
-    [JsonPropertyName("expiresAtUtc")]
-    public required DateTime ExpiresAtUtc { get; init; }
-
-    [JsonPropertyName("remindedAtUtc")]
-    public DateTime? RemindedAtUtc { get; init; }
-
-    [JsonPropertyName("closedAtUtc")]
-    public DateTime? ClosedAtUtc { get; init; }
-
-    [JsonPropertyName("status")]
-    public required string Status { get; init; }
-
-    [JsonPropertyName("_etag")]
-    public string? ETag { get; init; }
-
-    public static TrackedPollDocument FromEntity(TrackedPoll entity) => new()
-    {
-        Id = entity.Id,
-        ChatId = entity.ChatId,
-        Type = DocumentType,
-        PollId = entity.PollId,
-        MessageId = entity.MessageId,
-        Question = entity.Question,
-        Options = entity.Options,
-        AllowsMultipleAnswers = entity.AllowsMultipleAnswers,
-        CreatedAtUtc = entity.CreatedAtUtc,
-        ExpiresAtUtc = entity.ExpiresAtUtc,
-        RemindedAtUtc = entity.RemindedAtUtc,
-        ClosedAtUtc = entity.ClosedAtUtc,
-        Status = entity.Status.ToString(),
-        ETag = entity.ETag
-    };
+    public static TrackedPollDocument FromEntity(TrackedPoll entity) => new(
+        Id: entity.Id,
+        ChatId: entity.ChatId,
+        PollId: entity.PollId,
+        MessageId: entity.MessageId,
+        Question: entity.Question,
+        Options: entity.Options,
+        AllowsMultipleAnswers: entity.AllowsMultipleAnswers,
+        CreatedAtUtc: entity.CreatedAtUtc,
+        ExpiresAtUtc: entity.ExpiresAtUtc,
+        Status: entity.Status.ToString(),
+        RemindedAtUtc: entity.RemindedAtUtc,
+        ClosedAtUtc: entity.ClosedAtUtc,
+        ETag: entity.ETag
+    );
 
     public TrackedPoll ToEntity() => new()
     {

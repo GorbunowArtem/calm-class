@@ -1,11 +1,11 @@
+namespace CalmClass.Application;
+
 using CalmClass.Application.Features.Polls.Commands.CancelPoll;
 using CalmClass.Application.Features.Polls.Commands.ClosePoll;
 using CalmClass.Application.Features.Polls.Commands.CreatePoll;
 using CalmClass.Application.Features.Polls.Commands.IngestVote;
 using CalmClass.Application.Features.Polls.Services;
 using Microsoft.Extensions.DependencyInjection;
-
-namespace CalmClass.Application;
 
 public static class ApplicationServiceExtensions
 {

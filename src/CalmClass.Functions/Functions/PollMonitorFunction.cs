@@ -1,8 +1,8 @@
+namespace CalmClass.Functions.Functions;
+
 using CalmClass.Application.Features.Polls.Services;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-
-namespace CalmClass.Functions.Functions;
 
 public class PollMonitorFunction(
     PollMonitorService pollMonitorService,

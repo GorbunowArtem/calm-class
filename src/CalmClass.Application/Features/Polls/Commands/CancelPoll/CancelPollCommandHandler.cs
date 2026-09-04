@@ -1,9 +1,9 @@
+namespace CalmClass.Application.Features.Polls.Commands.CancelPoll;
+
 using CalmClass.Application.Common.Interfaces;
 using CalmClass.Application.Domain.Enums;
 using CalmClass.Application.Features.Polls.Localization;
 using Microsoft.Extensions.Logging;
-
-namespace CalmClass.Application.Features.Polls.Commands.CancelPoll;
 
 public record CancelPollCommand
 {

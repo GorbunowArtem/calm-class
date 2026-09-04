@@ -9,8 +9,16 @@
   - Reference the primary constructor parameters directly across instance methods using standard camelCase naming (e.g. `foo.DoSomething()`).
   - When secondary constructors are needed, chain to the primary constructor using `: this(...)`.
 
-- **Immutability & Records:**
-  - Leverage C# `record` types (`record class` or `record struct`) for domain entities, DTOs, data contracts, and document models.
+- **Immutability & Positional Records (Mandatory):**
+  - Leverage concise C# positional `record` types (`record class` or `record struct`) for domain entities, DTOs, data contracts, and document models.
+  - Serialization and validation attributes MUST explicitly use the `[property: ...]` target prefix (e.g. `[property: JsonPropertyName("...")]`, `[property: Required]`) so attributes attach directly to the compiler-generated public property.
+  - Use `[field: ...]` when targeting compiler-generated private backing fields (e.g. `[field: NonSerialized]`).
+  - Avoid verbose nominal record property declarations (`{ get; init; }`) when positional syntax can express the contract concisely.
+
+- **Using Directive Placement & Sorting (IDE0065 - Mandatory):**
+  - In accordance with `.editorconfig` (`csharp_using_directive_placement = inside_namespace:error`), all `using` directives in C# files MUST be placed inside/below the file-scoped `namespace <Name>;` declaration.
+  - Organize and sort using directives with `System` / `System.*` directives first, followed by other directives alphabetically (`dotnet_sort_system_directives_first = true`).
+  - Top-level statement entry points (e.g., `Program.cs`) lacking a namespace declaration are the sole exception.
 
 ## Spec-Driven Development & Living Documentation
 

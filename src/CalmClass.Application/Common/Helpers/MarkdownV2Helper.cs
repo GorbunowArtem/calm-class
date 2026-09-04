@@ -1,6 +1,6 @@
-using System.Text;
-
 namespace CalmClass.Application.Common.Helpers;
+
+using System.Text;
 
 /// <summary>
 /// Utility for escaping and formatting text strictly per Telegram Bot API MarkdownV2 specifications.
@@ -31,6 +31,7 @@ public static class MarkdownV2Helper
             {
                 sb.Append('\\');
             }
+
             sb.Append(ch);
         }
 

@@ -1,9 +1,9 @@
+namespace CalmClass.Application.Features.Polls.Commands.IngestVote;
+
 using CalmClass.Application.Common.Interfaces;
 using CalmClass.Application.Domain.Entities;
 using CalmClass.Application.Domain.Enums;
 using Microsoft.Extensions.Logging;
-
-namespace CalmClass.Application.Features.Polls.Commands.IngestVote;
 
 public record IngestVoteCommand
 {

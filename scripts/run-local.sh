@@ -54,8 +54,9 @@ export DOTNET_SKIP_WORKLOAD_INTEGRITY_CHECK=true
 # 4. Build and start Azure Functions host
 echo ""
 echo "Building CalmClass.Functions..."
-dotnet build -m:1 --no-restore "$FUNCTIONS_DIR/CalmClass.Functions.csproj"
+dotnet build -m:1 "$FUNCTIONS_DIR/CalmClass.Functions.csproj"
 
 echo ""
 echo "Starting CalmClass Functions locally on http://localhost:7071..."
-exec dotnet run --no-build --project "$FUNCTIONS_DIR/CalmClass.Functions.csproj"
+cd "$FUNCTIONS_DIR/bin/Debug/net10.0"
+exec func start

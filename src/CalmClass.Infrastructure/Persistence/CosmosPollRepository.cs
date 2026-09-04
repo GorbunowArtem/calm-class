@@ -1,3 +1,5 @@
+namespace CalmClass.Infrastructure.Persistence;
+
 using System.Net;
 using CalmClass.Application.Common.Interfaces;
 using CalmClass.Application.Common.Options;
@@ -7,17 +9,21 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace CalmClass.Infrastructure.Persistence;
-
 public class CosmosPollRepository(
     Container container,
-    CosmosClient cosmosClient,
-    IOptions<CalmClassOptions> options,
-    ILogger<CosmosPollRepository> logger) : IPollRepository
+    ILogger<CosmosPollRepository>? logger = null) : IPollRepository
 {
+    public CosmosPollRepository(
+        CosmosClient cosmosClient,
+        IOptions<CalmClassOptions> options,
+        ILogger<CosmosPollRepository> logger)
+        : this(cosmosClient.GetContainer(options.Value.CosmosDb.DatabaseName, options.Value.CosmosDb.ContainerName), logger)
+    {
+    }
+
     public async Task<TrackedPoll?> GetActivePollAsync(string chatId, CancellationToken cancellationToken = default)
     {
-        logger.LogDebug("Querying active poll for chat {ChatId}", chatId);
+        logger?.LogDebug("Querying active poll for chat {ChatId}", chatId);
         var queryDefinition = new QueryDefinition(
             "SELECT * FROM c WHERE c.chatId = @chatId AND c.type = @type AND (c.status = 'Open' OR c.status = 'Reminded')")
             .WithParameter("@chatId", chatId)

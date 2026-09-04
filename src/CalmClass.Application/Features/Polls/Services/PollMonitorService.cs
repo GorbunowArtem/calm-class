@@ -1,13 +1,13 @@
+namespace CalmClass.Application.Features.Polls.Services;
+
+using CalmClass.Application.Common.Helpers;
 using CalmClass.Application.Common.Interfaces;
 using CalmClass.Application.Common.Options;
 using CalmClass.Application.Domain.Entities;
 using CalmClass.Application.Domain.Enums;
-using CalmClass.Application.Common.Helpers;
 using CalmClass.Application.Features.Polls.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
-namespace CalmClass.Application.Features.Polls.Services;
 
 public class PollMonitorService(
     IPollRepository pollRepository,

@@ -1,11 +1,11 @@
+namespace CalmClass.ApplicationTests.Unit.Features;
+
 using CalmClass.Application.Common.Interfaces;
 using CalmClass.Application.Domain.Entities;
 using CalmClass.Application.Domain.Enums;
 using CalmClass.Application.Features.Polls.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-
-namespace CalmClass.ApplicationTests.Unit.Features;
 
 public class PollAuditServiceTests
 {

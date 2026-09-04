@@ -1,6 +1,6 @@
-using CalmClass.Application.Common.Interfaces;
-
 namespace CalmClass.Infrastructure.Services;
+
+using CalmClass.Application.Common.Interfaces;
 
 public class DateTimeProvider : IDateTimeProvider
 {

@@ -1,3 +1,5 @@
+namespace CalmClass.Infrastructure.Telegram;
+
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -6,8 +8,6 @@ using CalmClass.Application.Common.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly;
-
-namespace CalmClass.Infrastructure.Telegram;
 
 public class TelegramBotClient(
     HttpClient httpClient,
@@ -115,10 +115,7 @@ public class TelegramBotClient(
 
     private async Task<HttpResponseMessage> ExecuteWithResilienceAsync(
         Func<Task<HttpResponseMessage>> action,
-        CancellationToken cancellationToken)
-    {
-        return await pipeline.ExecuteAsync(
+        CancellationToken cancellationToken) => await pipeline.ExecuteAsync(
             async state => await action(),
             cancellationToken);
-    }
 }

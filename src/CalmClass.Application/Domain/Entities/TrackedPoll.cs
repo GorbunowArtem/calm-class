@@ -1,6 +1,6 @@
-using CalmClass.Application.Domain.Enums;
-
 namespace CalmClass.Application.Domain.Entities;
+
+using CalmClass.Application.Domain.Enums;
 
 public record TrackedPoll
 {

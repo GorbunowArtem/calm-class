@@ -6,7 +6,7 @@
 
 set -euo pipefail
 
-BASE_URL="${BASE_URL:-http://localhost:7071}"
+BASE_URL="${BASE_URL:-http://127.0.0.1:7071}"
 SECRET_TOKEN="${SECRET_TOKEN:-mock_secret}"
 CHAT_ID="${CHAT_ID:--1001234567890}"
 ADMIN_ID="${ADMIN_ID:-111}"

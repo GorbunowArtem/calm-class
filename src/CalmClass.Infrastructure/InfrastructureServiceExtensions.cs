@@ -1,3 +1,5 @@
+namespace CalmClass.Infrastructure;
+
 using CalmClass.Application.Common.Interfaces;
 using CalmClass.Application.Common.Options;
 using CalmClass.Infrastructure.Persistence;
@@ -7,8 +9,6 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-
-namespace CalmClass.Infrastructure;
 
 public static class InfrastructureServiceExtensions
 {

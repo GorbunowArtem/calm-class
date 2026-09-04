@@ -1,55 +1,33 @@
+namespace CalmClass.Infrastructure.Persistence.Documents;
+
 using System.Text.Json.Serialization;
 using CalmClass.Application.Domain.Entities;
 
-namespace CalmClass.Infrastructure.Persistence.Documents;
-
-public record PollVoteDocument
+public record PollVoteDocument(
+    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("chatId")] string ChatId,
+    [property: JsonPropertyName("pollId")] string PollId,
+    [property: JsonPropertyName("userId")] long UserId,
+    [property: JsonPropertyName("displayName")] string DisplayName,
+    [property: JsonPropertyName("selectedOptionIndices")] IReadOnlyList<int> SelectedOptionIndices,
+    [property: JsonPropertyName("votedAtUtc")] DateTime VotedAtUtc,
+    [property: JsonPropertyName("username")] string? Username = null,
+    [property: JsonPropertyName("isRevoked")] bool IsRevoked = false,
+    [property: JsonPropertyName("type")] string Type = PollVoteDocument.DocumentType)
 {
     public const string DocumentType = "PollVote";
 
-    [JsonPropertyName("id")]
-    public required string Id { get; init; }
-
-    [JsonPropertyName("chatId")]
-    public required string ChatId { get; init; }
-
-    [JsonPropertyName("type")]
-    public string Type { get; init; } = DocumentType;
-
-    [JsonPropertyName("pollId")]
-    public required string PollId { get; init; }
-
-    [JsonPropertyName("userId")]
-    public required long UserId { get; init; }
-
-    [JsonPropertyName("displayName")]
-    public required string DisplayName { get; init; }
-
-    [JsonPropertyName("username")]
-    public string? Username { get; init; }
-
-    [JsonPropertyName("selectedOptionIndices")]
-    public required IReadOnlyList<int> SelectedOptionIndices { get; init; }
-
-    [JsonPropertyName("votedAtUtc")]
-    public required DateTime VotedAtUtc { get; init; }
-
-    [JsonPropertyName("isRevoked")]
-    public bool IsRevoked { get; init; }
-
-    public static PollVoteDocument FromEntity(PollVote entity) => new()
-    {
-        Id = entity.Id,
-        ChatId = entity.ChatId,
-        Type = DocumentType,
-        PollId = entity.PollId,
-        UserId = entity.UserId,
-        DisplayName = entity.DisplayName,
-        Username = entity.Username,
-        SelectedOptionIndices = entity.SelectedOptionIndices,
-        VotedAtUtc = entity.VotedAtUtc,
-        IsRevoked = entity.IsRevoked
-    };
+    public static PollVoteDocument FromEntity(PollVote entity) => new(
+        Id: entity.Id,
+        ChatId: entity.ChatId,
+        PollId: entity.PollId,
+        UserId: entity.UserId,
+        DisplayName: entity.DisplayName,
+        SelectedOptionIndices: entity.SelectedOptionIndices,
+        VotedAtUtc: entity.VotedAtUtc,
+        Username: entity.Username,
+        IsRevoked: entity.IsRevoked
+    );
 
     public PollVote ToEntity() => new()
     {

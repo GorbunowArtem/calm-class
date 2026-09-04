@@ -1,10 +1,10 @@
+namespace CalmClass.Application.Features.Polls.Commands.ClosePoll;
+
 using CalmClass.Application.Common.Interfaces;
 using CalmClass.Application.Domain.Enums;
 using CalmClass.Application.Features.Polls.Localization;
 using CalmClass.Application.Features.Polls.Services;
 using Microsoft.Extensions.Logging;
-
-namespace CalmClass.Application.Features.Polls.Commands.ClosePoll;
 
 public record ClosePollCommand
 {

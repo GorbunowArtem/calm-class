@@ -1,8 +1,8 @@
+namespace CalmClass.InfrastructureTests.Unit.Persistence;
+
 using CalmClass.Application.Domain.Entities;
 using CalmClass.Application.Domain.Enums;
 using CalmClass.Infrastructure.Persistence.Documents;
-
-namespace CalmClass.InfrastructureTests.Unit.Persistence;
 
 public class CosmosMappingTests
 {

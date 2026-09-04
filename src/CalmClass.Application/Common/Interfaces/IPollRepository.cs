@@ -1,6 +1,6 @@
-using CalmClass.Application.Domain.Entities;
-
 namespace CalmClass.Application.Common.Interfaces;
+
+using CalmClass.Application.Domain.Entities;
 
 public interface IPollRepository
 {

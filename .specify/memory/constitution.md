@@ -15,10 +15,11 @@
 ### 2.1 Backend & Runtime
 
 - **Runtime & Language:** .NET 10 using C# latest language features. All backend code and data models must be written in C#.
-- **Data Models & Types:** Domain entities, data contracts, DTOs, value objects, and Cosmos DB document models must leverage C# `record` types (`record class` or `record struct`) where possible to enforce immutability and concise value semantics.
+- **Data Models & Positional Records (MUST):** Domain entities, data contracts, DTOs, value objects, and Cosmos DB document models must leverage concise C# positional `record` syntax (`record class` or `record struct`) to enforce immutability and eliminate boilerplate. Serialization and validation attributes MUST explicitly use the `[property: ...]` target prefix (e.g. `[property: JsonPropertyName("...")]`) to attach to the generated public property, and `[field: ...]` when targeting backing fields.
 - **Execution Model:** Azure Functions.
 - **Design Pattern:** Clean Architecture
 - **Primary Constructors (MUST):** All classes requiring dependency injection or initialization parameters MUST use C# primary constructors. Redundant private backing fields (e.g. `_field`) and underscore-prefixed parameters/identifiers (`_*`) are prohibited. Reference primary constructor parameters directly using standard camelCase naming.
+- **Using Directive Placement & Sorting (MUST):** In accordance with `.editorconfig` (`csharp_using_directive_placement = inside_namespace:error` and `dotnet_sort_system_directives_first = true`), all `using` directives in C# files MUST be placed inside/below the file-scoped `namespace <Name>;` declaration, with `System` namespaces sorted first. Top-level entry points without a namespace (e.g., `Program.cs`) are the only exception.
 - **Resilience:** Outbound HTTP calls (Telegram API, external webhooks) must use `Polly` policies handling transient HTTP failures (408, 429, 5xx) with jittered exponential backoff respecting Telegram's `retry_after` response header.
 
 ### 2.2 Persistence & State Management
