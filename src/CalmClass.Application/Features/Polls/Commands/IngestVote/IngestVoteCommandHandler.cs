@@ -21,34 +21,23 @@ public record IngestVoteResult
     public PollVote? Vote { get; init; }
 }
 
-public class IngestVoteCommandHandler
+public class IngestVoteCommandHandler(
+    IPollRepository pollRepository,
+    IDateTimeProvider dateTimeProvider,
+    ILogger<IngestVoteCommandHandler> logger)
 {
-    private readonly IPollRepository _pollRepository;
-    private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly ILogger<IngestVoteCommandHandler> _logger;
-
-    public IngestVoteCommandHandler(
-        IPollRepository pollRepository,
-        IDateTimeProvider dateTimeProvider,
-        ILogger<IngestVoteCommandHandler> logger)
-    {
-        _pollRepository = pollRepository;
-        _dateTimeProvider = dateTimeProvider;
-        _logger = logger;
-    }
-
     public async Task<IngestVoteResult> HandleAsync(IngestVoteCommand command, CancellationToken cancellationToken = default)
     {
-        var poll = await _pollRepository.FindPollByIdAsync(command.PollId, cancellationToken);
+        var poll = await pollRepository.FindPollByIdAsync(command.PollId, cancellationToken);
         if (poll == null)
         {
-            _logger.LogWarning("IngestVote dropped: Poll {PollId} not found", command.PollId);
+            logger.LogWarning("IngestVote dropped: Poll {PollId} not found", command.PollId);
             return new IngestVoteResult { Success = false, Reason = "Poll not found" };
         }
 
         if (!poll.IsActive)
         {
-            _logger.LogInformation("IngestVote dropped: Poll {PollId} is already {Status}", command.PollId, poll.Status);
+            logger.LogInformation("IngestVote dropped: Poll {PollId} is already {Status}", command.PollId, poll.Status);
             return new IngestVoteResult { Success = false, Reason = $"Poll is {poll.Status}" };
         }
 
@@ -65,15 +54,15 @@ public class IngestVoteCommandHandler
             DisplayName = command.DisplayName,
             Username = command.Username,
             SelectedOptionIndices = validIndices,
-            VotedAtUtc = _dateTimeProvider.UtcNow,
+            VotedAtUtc = dateTimeProvider.UtcNow,
             IsRevoked = isRevoked
         };
 
         // 1. Upsert vote record idempotently
-        await _pollRepository.UpsertVoteAsync(vote, cancellationToken);
+        await pollRepository.UpsertVoteAsync(vote, cancellationToken);
 
         // 2. Ensure member is registered in classroom roster
-        var member = await _pollRepository.GetMemberAsync(poll.ChatId, command.UserId, cancellationToken);
+        var member = await pollRepository.GetMemberAsync(poll.ChatId, command.UserId, cancellationToken);
         if (member == null)
         {
             var newMember = new GroupMember
@@ -84,12 +73,12 @@ public class IngestVoteCommandHandler
                 Username = command.Username,
                 Role = MemberRole.Member,
                 IsActive = true,
-                JoinedAtUtc = _dateTimeProvider.UtcNow
+                JoinedAtUtc = dateTimeProvider.UtcNow
             };
-            await _pollRepository.UpsertMemberAsync(newMember, cancellationToken);
+            await pollRepository.UpsertMemberAsync(newMember, cancellationToken);
         }
 
-        _logger.LogInformation("Successfully ingested vote for user {UserId} on poll {PollId}. Revoked: {IsRevoked}", command.UserId, command.PollId, isRevoked);
+        logger.LogInformation("Successfully ingested vote for user {UserId} on poll {PollId}. Revoked: {IsRevoked}", command.UserId, command.PollId, isRevoked);
 
         return new IngestVoteResult { Success = true, Vote = vote };
     }

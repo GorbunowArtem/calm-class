@@ -26,36 +26,23 @@ public record CreatePollResult
     public TrackedPoll? Poll { get; init; }
 }
 
-public class CreatePollCommandHandler
+public class CreatePollCommandHandler(
+    IPollRepository pollRepository,
+    ITelegramBotClient telegramBotClient,
+    IDateTimeProvider dateTimeProvider,
+    IOptions<CalmClassOptions> options,
+    ILogger<CreatePollCommandHandler> logger)
 {
-    private readonly IPollRepository _pollRepository;
-    private readonly ITelegramBotClient _telegramBotClient;
-    private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly PollOptions _pollOptions;
-    private readonly ILogger<CreatePollCommandHandler> _logger;
-
-    public CreatePollCommandHandler(
-        IPollRepository pollRepository,
-        ITelegramBotClient telegramBotClient,
-        IDateTimeProvider dateTimeProvider,
-        IOptions<CalmClassOptions> options,
-        ILogger<CreatePollCommandHandler> logger)
-    {
-        _pollRepository = pollRepository;
-        _telegramBotClient = telegramBotClient;
-        _dateTimeProvider = dateTimeProvider;
-        _pollOptions = options.Value.Poll;
-        _logger = logger;
-    }
-
     public async Task<CreatePollResult> HandleAsync(CreatePollCommand command, CancellationToken cancellationToken = default)
     {
+        var pollOptions = options.Value.Poll;
+
         // 1. Authorization check: must be active admin
-        var member = await _pollRepository.GetMemberAsync(command.ChatId, command.UserId, cancellationToken);
+        var member = await pollRepository.GetMemberAsync(command.ChatId, command.UserId, cancellationToken);
         if (member == null || !member.IsActive || member.Role != MemberRole.Admin)
         {
-            _logger.LogWarning("Unauthorized /create_poll attempt by user {UserId} in chat {ChatId}", command.UserId, command.ChatId);
-            await _telegramBotClient.SendMessageAsync(
+            logger.LogWarning("Unauthorized /create_poll attempt by user {UserId} in chat {ChatId}", command.UserId, command.ChatId);
+            await telegramBotClient.SendMessageAsync(
                 command.ChatId,
                 UkrainianPollMessages.UnauthorizedAdminOnly,
                 cancellationToken: cancellationToken);
@@ -63,11 +50,11 @@ public class CreatePollCommandHandler
         }
 
         // 2. Concurrency check: strictly single active poll per chat
-        var activePoll = await _pollRepository.GetActivePollAsync(command.ChatId, cancellationToken);
+        var activePoll = await pollRepository.GetActivePollAsync(command.ChatId, cancellationToken);
         if (activePoll != null)
         {
-            _logger.LogWarning("Rejecting /create_poll: chat {ChatId} already has active poll {PollId}", command.ChatId, activePoll.PollId);
-            await _telegramBotClient.SendMessageAsync(
+            logger.LogWarning("Rejecting /create_poll: chat {ChatId} already has active poll {PollId}", command.ChatId, activePoll.PollId);
+            await telegramBotClient.SendMessageAsync(
                 command.ChatId,
                 UkrainianPollMessages.ActivePollAlreadyExists,
                 cancellationToken: cancellationToken);
@@ -77,14 +64,14 @@ public class CreatePollCommandHandler
         // 3. Parse parameters from raw args if not provided
         var question = command.Question;
         var optionsList = command.Options?.ToList();
-        var duration = command.DurationHours ?? _pollOptions.DefaultDurationHours;
+        var duration = command.DurationHours ?? pollOptions.DefaultDurationHours;
 
         if (!string.IsNullOrWhiteSpace(command.RawArgs) && (string.IsNullOrEmpty(question) || optionsList == null))
         {
-            var parsed = ParseRawArguments(command.RawArgs, _pollOptions.DefaultDurationHours);
+            var parsed = ParseRawArguments(command.RawArgs, pollOptions.DefaultDurationHours);
             if (parsed == null)
             {
-                await _telegramBotClient.SendMessageAsync(
+                await telegramBotClient.SendMessageAsync(
                     command.ChatId,
                     $"{UkrainianPollMessages.CreatePollUsage}",
                     cancellationToken: cancellationToken);
@@ -98,9 +85,9 @@ public class CreatePollCommandHandler
 
         // 4. Validate question & options
         if (string.IsNullOrWhiteSpace(question) || optionsList == null ||
-            optionsList.Count < _pollOptions.MinOptionCount || optionsList.Count > _pollOptions.MaxOptionCount)
+            optionsList.Count < pollOptions.MinOptionCount || optionsList.Count > pollOptions.MaxOptionCount)
         {
-            await _telegramBotClient.SendMessageAsync(
+            await telegramBotClient.SendMessageAsync(
                 command.ChatId,
                 UkrainianPollMessages.InvalidOptionsCount,
                 cancellationToken: cancellationToken);
@@ -108,9 +95,9 @@ public class CreatePollCommandHandler
         }
 
         // 5. Validate duration
-        if (duration < _pollOptions.MinDurationHours || duration > _pollOptions.MaxDurationHours)
+        if (duration < pollOptions.MinDurationHours || duration > pollOptions.MaxDurationHours)
         {
-            await _telegramBotClient.SendMessageAsync(
+            await telegramBotClient.SendMessageAsync(
                 command.ChatId,
                 UkrainianPollMessages.InvalidDuration,
                 cancellationToken: cancellationToken);
@@ -118,7 +105,7 @@ public class CreatePollCommandHandler
         }
 
         // 6. Publish non-anonymous poll via Telegram Bot API
-        var telegramResult = await _telegramBotClient.SendPollAsync(
+        var telegramResult = await telegramBotClient.SendPollAsync(
             command.ChatId,
             question,
             optionsList,
@@ -126,7 +113,7 @@ public class CreatePollCommandHandler
             allowsMultipleAnswers: false,
             cancellationToken: cancellationToken);
 
-        var now = _dateTimeProvider.UtcNow;
+        var now = dateTimeProvider.UtcNow;
         var trackedPoll = new TrackedPoll
         {
             ChatId = command.ChatId,
@@ -141,8 +128,8 @@ public class CreatePollCommandHandler
         };
 
         // 7. Persist tracked poll
-        await _pollRepository.CreatePollAsync(trackedPoll, cancellationToken);
-        _logger.LogInformation("Created and tracked new poll {PollId} in chat {ChatId}", trackedPoll.PollId, command.ChatId);
+        await pollRepository.CreatePollAsync(trackedPoll, cancellationToken);
+        logger.LogInformation("Created and tracked new poll {PollId} in chat {ChatId}", trackedPoll.PollId, command.ChatId);
 
         return new CreatePollResult { Success = true, Poll = trackedPoll };
     }

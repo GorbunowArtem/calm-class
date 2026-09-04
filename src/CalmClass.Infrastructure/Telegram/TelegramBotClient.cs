@@ -9,38 +9,27 @@ using Polly;
 
 namespace CalmClass.Infrastructure.Telegram;
 
-public class TelegramBotClient : ITelegramBotClient
+public class TelegramBotClient(
+    HttpClient httpClient,
+    IOptions<CalmClassOptions> options,
+    ILogger<TelegramBotClient> logger) : ITelegramBotClient
 {
-    private readonly HttpClient _httpClient;
-    private readonly TelegramOptions _options;
-    private readonly ResiliencePipeline<HttpResponseMessage> _pipeline;
-    private readonly ILogger<TelegramBotClient> _logger;
-
-    public TelegramBotClient(
-        HttpClient httpClient,
-        IOptions<CalmClassOptions> options,
-        ILogger<TelegramBotClient> logger)
-    {
-        _httpClient = httpClient;
-        _options = options.Value.Telegram;
-        _logger = logger;
-        _pipeline = TelegramResiliencePipeline.CreatePipeline(logger);
-    }
+    private readonly ResiliencePipeline<HttpResponseMessage> pipeline = TelegramResiliencePipeline.CreatePipeline(logger);
 
     private string BuildUrl(string method) =>
-        $"{_options.BaseUrl.TrimEnd('/')}/bot{_options.BotToken}/{method}";
+        $"{options.Value.Telegram.BaseUrl.TrimEnd('/')}/bot{options.Value.Telegram.BotToken}/{method}";
 
     public async Task<TelegramPollResult> SendPollAsync(
         string chatId,
         string question,
-        IReadOnlyList<string> options,
+        IReadOnlyList<string> optionsList,
         bool isAnonymous = false,
         bool allowsMultipleAnswers = false,
         CancellationToken cancellationToken = default)
     {
         var url = BuildUrl("sendPoll");
         // In Telegram Bot API, options are array of objects with "text" property
-        var formattedOptions = options.Select(opt => new { text = opt }).ToArray();
+        var formattedOptions = optionsList.Select(opt => new { text = opt }).ToArray();
 
         var payload = new
         {
@@ -52,7 +41,7 @@ public class TelegramBotClient : ITelegramBotClient
         };
 
         var response = await ExecuteWithResilienceAsync(
-            () => _httpClient.PostAsJsonAsync(url, payload, cancellationToken),
+            () => httpClient.PostAsJsonAsync(url, payload, cancellationToken),
             cancellationToken);
 
         response.EnsureSuccessStatusCode();
@@ -63,7 +52,7 @@ public class TelegramBotClient : ITelegramBotClient
         var messageId = result.GetProperty("message_id").GetInt32();
         var pollId = result.GetProperty("poll").GetProperty("id").GetString()!;
 
-        _logger.LogInformation("Successfully posted poll {PollId} in chat {ChatId}, messageId {MessageId}", pollId, chatId, messageId);
+        logger.LogInformation("Successfully posted poll {PollId} in chat {ChatId}, messageId {MessageId}", pollId, chatId, messageId);
 
         return new TelegramPollResult
         {
@@ -85,13 +74,13 @@ public class TelegramBotClient : ITelegramBotClient
         };
 
         var response = await ExecuteWithResilienceAsync(
-            () => _httpClient.PostAsJsonAsync(url, payload, cancellationToken),
+            () => httpClient.PostAsJsonAsync(url, payload, cancellationToken),
             cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
             var err = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogWarning("Failed to stop poll message {MessageId} in chat {ChatId}: {Error}", messageId, chatId, err);
+            logger.LogWarning("Failed to stop poll message {MessageId} in chat {ChatId}: {Error}", messageId, chatId, err);
         }
     }
 
@@ -112,7 +101,7 @@ public class TelegramBotClient : ITelegramBotClient
         };
 
         var response = await ExecuteWithResilienceAsync(
-            () => _httpClient.PostAsJsonAsync(url, payload, cancellationToken),
+            () => httpClient.PostAsJsonAsync(url, payload, cancellationToken),
             cancellationToken);
 
         response.EnsureSuccessStatusCode();
@@ -128,7 +117,7 @@ public class TelegramBotClient : ITelegramBotClient
         Func<Task<HttpResponseMessage>> action,
         CancellationToken cancellationToken)
     {
-        return await _pipeline.ExecuteAsync(
+        return await pipeline.ExecuteAsync(
             async state => await action(),
             cancellationToken);
     }

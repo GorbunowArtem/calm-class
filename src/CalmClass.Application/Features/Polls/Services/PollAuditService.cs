@@ -21,19 +21,10 @@ public record PollAuditReport
     public required IReadOnlyList<VoterAuditRecord> Voters { get; init; }
 }
 
-public class PollAuditService
+public class PollAuditService(
+    IPollRepository pollRepository,
+    ILogger<PollAuditService> logger)
 {
-    private readonly IPollRepository _pollRepository;
-    private readonly ILogger<PollAuditService> _logger;
-
-    public PollAuditService(
-        IPollRepository pollRepository,
-        ILogger<PollAuditService> logger)
-    {
-        _pollRepository = pollRepository;
-        _logger = logger;
-    }
-
     public async Task<PollAuditReport?> GetAuditReportAsync(
         string chatId,
         string pollId,
@@ -41,23 +32,23 @@ public class PollAuditService
         CancellationToken cancellationToken = default)
     {
         // 1. Verify that requesting user is an active admin
-        var member = await _pollRepository.GetMemberAsync(chatId, requestingUserId, cancellationToken);
+        var member = await pollRepository.GetMemberAsync(chatId, requestingUserId, cancellationToken);
         if (member == null || !member.IsActive || member.Role != MemberRole.Admin)
         {
-            _logger.LogWarning("Unauthorized audit access attempt by user {UserId} in chat {ChatId}", requestingUserId, chatId);
+            logger.LogWarning("Unauthorized audit access attempt by user {UserId} in chat {ChatId}", requestingUserId, chatId);
             throw new UnauthorizedAccessException("Only active committee admins can access the audit report.");
         }
 
         // 2. Fetch poll
-        var poll = await _pollRepository.GetPollByIdAsync(chatId, pollId, cancellationToken);
+        var poll = await pollRepository.GetPollByIdAsync(chatId, pollId, cancellationToken);
         if (poll == null)
         {
-            _logger.LogInformation("Poll {PollId} not found in chat {ChatId} for audit report", pollId, chatId);
+            logger.LogInformation("Poll {PollId} not found in chat {ChatId} for audit report", pollId, chatId);
             return null;
         }
 
         // 3. Fetch active votes
-        var votes = await _pollRepository.GetVotesForPollAsync(chatId, pollId, cancellationToken);
+        var votes = await pollRepository.GetVotesForPollAsync(chatId, pollId, cancellationToken);
         var activeVotes = votes.Where(v => !v.IsRevoked).ToList();
 
         var voterRecords = activeVotes.Select(v =>

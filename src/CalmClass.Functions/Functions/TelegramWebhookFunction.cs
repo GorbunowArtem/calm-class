@@ -10,34 +10,19 @@ using Microsoft.Extensions.Logging;
 
 namespace CalmClass.Functions.Functions;
 
-public class TelegramWebhookFunction
+public class TelegramWebhookFunction(
+    CreatePollCommandHandler createPollHandler,
+    ClosePollCommandHandler closePollHandler,
+    CancelPollCommandHandler cancelPollHandler,
+    IngestVoteCommandHandler ingestVoteHandler,
+    ILogger<TelegramWebhookFunction> logger)
 {
-    private readonly CreatePollCommandHandler _createPollHandler;
-    private readonly ClosePollCommandHandler _closePollHandler;
-    private readonly CancelPollCommandHandler _cancelPollHandler;
-    private readonly IngestVoteCommandHandler _ingestVoteHandler;
-    private readonly ILogger<TelegramWebhookFunction> _logger;
-
-    public TelegramWebhookFunction(
-        CreatePollCommandHandler createPollHandler,
-        ClosePollCommandHandler closePollHandler,
-        CancelPollCommandHandler cancelPollHandler,
-        IngestVoteCommandHandler ingestVoteHandler,
-        ILogger<TelegramWebhookFunction> logger)
-    {
-        _createPollHandler = createPollHandler;
-        _closePollHandler = closePollHandler;
-        _cancelPollHandler = cancelPollHandler;
-        _ingestVoteHandler = ingestVoteHandler;
-        _logger = logger;
-    }
-
     [Function("TelegramWebhook")]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "telegram/webhook")] HttpRequestData req,
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Received Telegram webhook event");
+        logger.LogInformation("Received Telegram webhook event");
 
         try
         {
@@ -66,7 +51,7 @@ public class TelegramWebhookFunction
                         var spaceIdx = text.IndexOf(' ');
                         var rawArgs = spaceIdx >= 0 ? text[(spaceIdx + 1)..].Trim() : string.Empty;
 
-                        await _createPollHandler.HandleAsync(new CreatePollCommand
+                        await createPollHandler.HandleAsync(new CreatePollCommand
                         {
                             ChatId = chatId,
                             UserId = userId,
@@ -75,7 +60,7 @@ public class TelegramWebhookFunction
                     }
                     else if (text.StartsWith("/close_poll", StringComparison.OrdinalIgnoreCase))
                     {
-                        await _closePollHandler.HandleAsync(new ClosePollCommand
+                        await closePollHandler.HandleAsync(new ClosePollCommand
                         {
                             ChatId = chatId,
                             UserId = userId
@@ -83,7 +68,7 @@ public class TelegramWebhookFunction
                     }
                     else if (text.StartsWith("/cancel_poll", StringComparison.OrdinalIgnoreCase))
                     {
-                        await _cancelPollHandler.HandleAsync(new CancelPollCommand
+                        await cancelPollHandler.HandleAsync(new CancelPollCommand
                         {
                             ChatId = chatId,
                             UserId = userId
@@ -116,7 +101,7 @@ public class TelegramWebhookFunction
                         }
                     }
 
-                    await _ingestVoteHandler.HandleAsync(new IngestVoteCommand
+                    await ingestVoteHandler.HandleAsync(new IngestVoteCommand
                     {
                         PollId = pollId,
                         UserId = userId,
@@ -133,7 +118,7 @@ public class TelegramWebhookFunction
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error handling Telegram webhook event");
+            logger.LogError(ex, "Error handling Telegram webhook event");
             var okResponse = req.CreateResponse(HttpStatusCode.OK);
             return okResponse;
         }

@@ -9,26 +9,16 @@ using Microsoft.Extensions.Options;
 
 namespace CalmClass.Infrastructure.Persistence;
 
-public class CosmosPollRepository : IPollRepository
+public class CosmosPollRepository(
+    Container container,
+    ILogger<CosmosPollRepository>? logger = null) : IPollRepository
 {
-    private readonly Container _container;
-    private readonly ILogger<CosmosPollRepository> _logger;
-
     public CosmosPollRepository(
         CosmosClient cosmosClient,
         IOptions<CalmClassOptions> options,
         ILogger<CosmosPollRepository> logger)
+        : this(cosmosClient.GetContainer(options.Value.CosmosDb.DatabaseName, options.Value.CosmosDb.ContainerName), logger)
     {
-        _logger = logger;
-        var cosmosOptions = options.Value.CosmosDb;
-        _container = cosmosClient.GetContainer(cosmosOptions.DatabaseName, cosmosOptions.ContainerName);
-    }
-
-    // Constructor for testing with mockable Container
-    public CosmosPollRepository(Container container, ILogger<CosmosPollRepository> logger)
-    {
-        _container = container;
-        _logger = logger;
     }
 
     public async Task<TrackedPoll?> GetActivePollAsync(string chatId, CancellationToken cancellationToken = default)
@@ -38,7 +28,7 @@ public class CosmosPollRepository : IPollRepository
             .WithParameter("@chatId", chatId)
             .WithParameter("@type", TrackedPollDocument.DocumentType);
 
-        var query = _container.GetItemQueryIterator<TrackedPollDocument>(
+        var query = container.GetItemQueryIterator<TrackedPollDocument>(
             queryDefinition,
             requestOptions: new QueryRequestOptions { PartitionKey = new PartitionKey(chatId) });
 
