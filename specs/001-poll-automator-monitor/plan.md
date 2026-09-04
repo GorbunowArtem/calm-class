@@ -115,6 +115,7 @@ src/
 ├── CalmClass.Infrastructure/
 │   ├── Persistence/
 │   │   ├── CosmosPollRepository.cs
+│   │   ├── InMemoryPollRepository.cs
 │   │   └── Documents/
 │   │       ├── TrackedPollDocument.cs
 │   │       ├── PollVoteDocument.cs
@@ -127,12 +128,20 @@ src/
 │
 └── CalmClass.Functions/
     ├── Functions/
-    │   ├── TelegramWebhookFunction.cs    # HttpTrigger for Telegram updates
+    │   ├── TelegramWebhookFunction.cs    # HttpTrigger for Telegram updates (/start, /create_poll, etc.)
     │   └── PollMonitorFunction.cs        # TimerTrigger (cron: every 5 min)
     ├── Middleware/
     │   └── TelegramSecretTokenMiddleware.cs
+    ├── local.settings.example.json
     ├── Program.cs
     └── host.json
+
+scripts/
+├── run-local.sh
+├── register-webhook.sh
+└── simulate-webhook.sh
+
+docker-compose.yml
 
 tests/unit/
 ├── CalmClass.ApplicationTests.Unit/

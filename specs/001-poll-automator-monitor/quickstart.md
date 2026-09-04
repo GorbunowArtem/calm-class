@@ -1,7 +1,7 @@
 # Quickstart & Verification Guide: Non-Anonymous Poll Automator & Follow-Up Monitor
 
 **Feature**: `specs/001-poll-automator-monitor`  
-**Status**: Ready for Implementation  
+**Status**: Complete & Verified Live  
 **Date**: 2026-09-04  
 
 ---
@@ -9,28 +9,38 @@
 ## 1. Prerequisites & Environment Setup
 
 - **.NET SDK**: .NET 10.0+ (`dotnet --version`)
-- **Azure Functions Core Tools**: v4.x (for local execution of Isolated Worker functions)
-- **Azurite / Cosmos DB Emulator**: Local storage or Azure Cosmos DB connection string
-- **Test Runner**: Microsoft Testing Platform / TUnit (`dotnet test`)
+- **Azure Functions Core Tools**: v4.x (`func --version`)
+- **Public HTTPS Tunnel**: `ngrok` (for receiving live Telegram webhooks)
+- **Azurite / Cosmos DB Emulator** (Optional): Azurite for timer checkpoints and Cosmos DB for persistence. If offline, the application seamlessly falls back to `InMemoryPollRepository` for local development.
 
 ---
 
-## 2. Local Configuration (`local.settings.json`)
+## 2. Local Configuration & Quick Run
 
-Configure local settings for running the function app:
-```json
-{
-  "IsEncrypted": false,
-  "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "Telegram__BotToken": "<mock-or-dev-token>",
-    "Telegram__WebhookSecretToken": "test-secret-token-123",
-    "CosmosDb__ConnectionString": "AccountEndpoint=https://localhost:8081/;AccountKey=...",
-    "CosmosDb__DatabaseName": "CalmClassDb",
-    "CosmosDb__ContainerName": "Polls"
-  }
-}
+### Automated Runner
+Launch the functions host locally with a single command:
+```bash
+./scripts/run-local.sh
+```
+This script validates prerequisites, copies `local.settings.example.json` to `local.settings.json` if missing, builds the project, and runs `func start` on `http://localhost:7071`.
+
+### Telegram Webhook Registration
+To connect your running local instance to live Telegram:
+```bash
+# In terminal 1: Start ngrok tunnel
+ngrok http 7071
+
+# In terminal 2: Register webhook (auto-detects ngrok and local settings)
+./scripts/register-webhook.sh
+```
+
+### Local Webhook Event Simulator
+To test voting workflows locally without sending live Telegram messages:
+```bash
+./scripts/simulate-webhook.sh create   # Simulate /create_poll
+./scripts/simulate-webhook.sh vote     # Simulate casting a vote
+./scripts/simulate-webhook.sh retract  # Simulate vote retraction
+./scripts/simulate-webhook.sh close    # Simulate /close_poll
 ```
 
 ---

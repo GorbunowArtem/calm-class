@@ -365,4 +365,5 @@ kafka_schemas.tf
 **/.DS_Store
 local.settings.json
 .dotnet
+.nuget/
 .azurefunctions/

@@ -2,7 +2,7 @@
 
 **Feature Directory**: `specs/001-poll-automator-monitor`  
 **Date**: 2026-09-04  
-**Status**: Ready for Implementation  
+**Status**: Complete & Verified Live  
 **Specification**: [specs/001-poll-automator-monitor/spec.md](file:///Users/Artem_Horbunov1/EPAM/calm-class/specs/001-poll-automator-monitor/spec.md)  
 **Implementation Plan**: [specs/001-poll-automator-monitor/plan.md](file:///Users/Artem_Horbunov1/EPAM/calm-class/specs/001-poll-automator-monitor/plan.md)  
 
@@ -122,6 +122,9 @@
 - [x] T034 [P] Configure Serilog structured logging and Application Insights telemetry in `src/CalmClass.Functions/Program.cs` ensuring no raw tokens or sensitive PII are logged
 - [x] T035 Run end-to-end verification and test suite execution (`dotnet test`) across all projects per `specs/001-poll-automator-monitor/quickstart.md`
 - [x] T036 Reconcile and update `specs/001-poll-automator-monitor/spec.md` (and contracts/) to reflect as-built implementation behavior, edge cases, and schema details
+- [x] T037 [P] Implement `/start` and `/help` command routing with Ukrainian guidance in `src/CalmClass.Functions/Functions/TelegramWebhookFunction.cs`
+- [x] T038 [P] Implement `InMemoryPollRepository` fallback and initial chat admin bootstrap in `src/CalmClass.Infrastructure/Persistence/InMemoryPollRepository.cs` and `CosmosPollRepository.cs`
+- [x] T039 [P] Create local developer scripts (`scripts/run-local.sh`, `scripts/register-webhook.sh`, `scripts/simulate-webhook.sh`, `docker-compose.yml`) and VS Code debug profiles in `.vscode/`
 
 ---
 
