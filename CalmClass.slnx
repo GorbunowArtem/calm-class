@@ -1,0 +1,33 @@
+<Solution>
+  <Folder Name="/.specify/" />
+  <Folder Name="/.specify/memory/">
+    <File Path=".specify/memory/constitution.md" />
+  </Folder>
+  <Folder Name="/.specify/scripts/" />
+  <Folder Name="/.specify/scripts/powershell/">
+    <File Path=".specify/scripts/powershell/check-prerequisites.ps1" />
+    <File Path=".specify/scripts/powershell/common.ps1" />
+    <File Path=".specify/scripts/powershell/create-new-feature.ps1" />
+    <File Path=".specify/scripts/powershell/setup-plan.ps1" />
+    <File Path=".specify/scripts/powershell/update-agent-context.ps1" />
+  </Folder>
+  <Folder Name="/.specify/templates/">
+    <File Path=".specify/templates/agent-file-template.md" />
+    <File Path=".specify/templates/checklist-template.md" />
+    <File Path=".specify/templates/plan-template.md" />
+    <File Path=".specify/templates/spec-template.md" />
+    <File Path=".specify/templates/tasks-template.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/CalmClass.Application/CalmClass.Application.csproj" />
+    <Project Path="src/CalmClass.Functions/CalmClass.Functions.csproj" />
+    <Project Path="src/CalmClass.Infrastructure/CalmClass.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/unit/">
+    <Project
+      Path="tests/unit/CalmClass.ApplicationTests.Unit/CalmClass.ApplicationTests.Unit.csproj" />
+    <Project
+      Path="tests/unit/CalmClass.InfrastructureTests.Unit/CalmClass.InfrastructureTests.Unit.csproj" />
+  </Folder>
+</Solution>

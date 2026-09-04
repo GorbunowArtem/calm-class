@@ -1,0 +1,18 @@
+{
+  "stryker-config": {
+    "project": "CalmClass.Infrastructure.csproj",
+    "test-runner": "mtp",
+    "coverage-analysis": "off",
+    "since": { "target": "origin/main", "ignore-changes-in": ["**/*.json", "**/*.yml", "**/*.yaml", "**/*.sh", "**/*.csproj", "**/*.md", "**/*.tf", "**/*.hcl", "**/*.avsc", "**/*.properties"] },
+    "reporters": [ "html", "json", "progress" ],
+    "thresholds": { "high": 80, "low": 60, "break": 60 },
+    "ignore-methods": [
+      "*LogCrititcal*",
+      "*LogDebug*",
+      "*LogError*",
+      "*LogInformation*",
+      "*LogTrace*",
+      "*LogWarning*"
+    ]
+  }
+}
