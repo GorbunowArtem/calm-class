@@ -177,6 +177,11 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Validate that tests pass and coverage meets requirements
    - Confirm the implementation follows the technical plan
 
+10. Spec Reconciliation (Living Spec Requirement):
+   - Compare the final as-built implementation against `spec.md` and related `contracts/`
+   - Update `spec.md` to incorporate any newly handled edge cases, schema nuances, parameter adjustments, or design refinements made during implementation
+   - Ensure `spec.md` accurately documents what was actually built so that it serves as an authoritative living source of truth
+
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit-tasks` first to regenerate the task list.
 
 ## Mandatory Post-Execution Hooks
@@ -222,5 +227,6 @@ Report final status with summary of completed work.
 
 - [ ] All tasks in tasks.md completed and marked `[X]`
 - [ ] Implementation validated against specification, plan, and test coverage
+- [ ] Specification (`spec.md`) and contracts updated and reconciled with the as-built implementation
 - [ ] Extension hooks dispatched or skipped according to the rules in Mandatory Post-Execution Hooks above
 - [ ] Completion reported to user with summary of completed work

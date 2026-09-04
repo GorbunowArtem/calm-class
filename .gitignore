@@ -355,10 +355,13 @@ appsettings.local.json
 
 # Env files
 .env
-
+.local
+Library
 # Auto generated TF files
 kafka_schemas.tf
 
 #orig files
 *.orig
 **/.DS_Store
+local.settings.json
+.dotnet

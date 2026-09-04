@@ -3,6 +3,7 @@
 ## 1. Core Principles & Philosophy
 
 - **Spec-First Engineering:** Every feature, data schema modification, or integration contract must originate from a dedicated specification before code is written. Specifications are living source-of-truth documents.
+- **Living Spec Synchronization (MUST):** Specifications are living source-of-truth documents. Upon completing implementation for any feature or phase, the agent MUST review and synchronize `spec.md` (and related contracts) with the as-built reality—incorporating any newly handled edge cases, schema adjustments, or refined behaviors. An implementation is not considered complete if the specification is out of date.
 - **Extreme Operational Frugality:** The platform operates strictly within free or near-zero-cost serverless tiers (Azure Consumption, Azure Table Storage, zero-cost Telegram Bot API). Architectural choices that introduce persistent compute costs or unneeded premium tiers are rejected by default.
 - **Privacy & Least Privilege:** Student identity, parental phone numbers, and payment details are sensitive. Data stored must be minimal, stripped of unnecessary PII, encrypted at rest, and never exposed to unauthorized group members.
 - **Idempotency & Resilience:** Network flakiness, webhook re-deliveries from Telegram, and transient bank API timeouts are treated as normal conditions. Every ingestion endpoint must be strictly idempotent.
@@ -13,8 +14,9 @@
 
 ### 2.1 Backend & Runtime
 
-- **Runtime:** .NET 10 using C# latest language features.
-- **Execution Model:** Azure Functions .
+- **Runtime & Language:** .NET 10 using C# latest language features. All backend code and data models must be written in C#.
+- **Data Models & Types:** Domain entities, data contracts, DTOs, value objects, and Cosmos DB document models must leverage C# `record` types (`record class` or `record struct`) where possible to enforce immutability and concise value semantics.
+- **Execution Model:** Azure Functions.
 - **Design Pattern:** Clean Architecture
 - **Resilience:** Outbound HTTP calls (Telegram API, external webhooks) must use `Polly` policies handling transient HTTP failures (408, 429, 5xx) with jittered exponential backoff respecting Telegram's `retry_after` response header.
 

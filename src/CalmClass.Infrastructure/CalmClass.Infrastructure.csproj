@@ -1,5 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <ItemGroup>
+        <PackageReference Include="Polly" />
+        <PackageReference Include="Microsoft.Extensions.Logging" />
+        <PackageReference Include="Microsoft.Azure.Cosmos" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\CalmClass.Application\CalmClass.Application.csproj" />
     </ItemGroup>
 
