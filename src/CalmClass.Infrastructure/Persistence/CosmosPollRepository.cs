@@ -50,7 +50,7 @@ public class CosmosPollRepository(
         var docId = $"poll_{pollId}";
         try
         {
-            var response = await _container.ReadItemAsync<TrackedPollDocument>(
+            var response = await container.ReadItemAsync<TrackedPollDocument>(
                 docId,
                 new PartitionKey(chatId),
                 cancellationToken: cancellationToken);
@@ -70,7 +70,7 @@ public class CosmosPollRepository(
             .WithParameter("@type", TrackedPollDocument.DocumentType)
             .WithParameter("@pollId", pollId);
 
-        var query = _container.GetItemQueryIterator<TrackedPollDocument>(queryDefinition);
+        var query = container.GetItemQueryIterator<TrackedPollDocument>(queryDefinition);
         while (query.HasMoreResults)
         {
             var response = await query.ReadNextAsync(cancellationToken);
@@ -90,7 +90,7 @@ public class CosmosPollRepository(
             "SELECT * FROM c WHERE c.type = @type AND (c.status = 'Open' OR c.status = 'Reminded')")
             .WithParameter("@type", TrackedPollDocument.DocumentType);
 
-        var query = _container.GetItemQueryIterator<TrackedPollDocument>(queryDefinition);
+        var query = container.GetItemQueryIterator<TrackedPollDocument>(queryDefinition);
         var results = new List<TrackedPoll>();
 
         while (query.HasMoreResults)
@@ -105,7 +105,7 @@ public class CosmosPollRepository(
     public async Task CreatePollAsync(TrackedPoll poll, CancellationToken cancellationToken = default)
     {
         var doc = TrackedPollDocument.FromEntity(poll);
-        await _container.CreateItemAsync(doc, new PartitionKey(poll.ChatId), cancellationToken: cancellationToken);
+        await container.CreateItemAsync(doc, new PartitionKey(poll.ChatId), cancellationToken: cancellationToken);
     }
 
     public async Task UpdatePollAsync(TrackedPoll poll, CancellationToken cancellationToken = default)
@@ -115,7 +115,7 @@ public class CosmosPollRepository(
             ? new ItemRequestOptions { IfMatchEtag = poll.ETag }
             : null;
 
-        await _container.UpsertItemAsync(
+        await container.UpsertItemAsync(
             doc,
             new PartitionKey(poll.ChatId),
             requestOptions: requestOptions,
@@ -125,7 +125,7 @@ public class CosmosPollRepository(
     public async Task UpsertVoteAsync(PollVote vote, CancellationToken cancellationToken = default)
     {
         var doc = PollVoteDocument.FromEntity(vote);
-        await _container.UpsertItemAsync(doc, new PartitionKey(vote.ChatId), cancellationToken: cancellationToken);
+        await container.UpsertItemAsync(doc, new PartitionKey(vote.ChatId), cancellationToken: cancellationToken);
     }
 
     public async Task<IReadOnlyList<PollVote>> GetVotesForPollAsync(string chatId, string pollId, CancellationToken cancellationToken = default)
@@ -136,7 +136,7 @@ public class CosmosPollRepository(
             .WithParameter("@type", PollVoteDocument.DocumentType)
             .WithParameter("@pollId", pollId);
 
-        var query = _container.GetItemQueryIterator<PollVoteDocument>(
+        var query = container.GetItemQueryIterator<PollVoteDocument>(
             queryDefinition,
             requestOptions: new QueryRequestOptions { PartitionKey = new PartitionKey(chatId) });
 
@@ -157,7 +157,7 @@ public class CosmosPollRepository(
             .WithParameter("@chatId", chatId)
             .WithParameter("@type", GroupMemberDocument.DocumentType);
 
-        var query = _container.GetItemQueryIterator<GroupMemberDocument>(
+        var query = container.GetItemQueryIterator<GroupMemberDocument>(
             queryDefinition,
             requestOptions: new QueryRequestOptions { PartitionKey = new PartitionKey(chatId) });
 
@@ -176,7 +176,7 @@ public class CosmosPollRepository(
         var docId = $"member_{chatId}_{userId}";
         try
         {
-            var response = await _container.ReadItemAsync<GroupMemberDocument>(
+            var response = await container.ReadItemAsync<GroupMemberDocument>(
                 docId,
                 new PartitionKey(chatId),
                 cancellationToken: cancellationToken);
@@ -192,6 +192,6 @@ public class CosmosPollRepository(
     public async Task UpsertMemberAsync(GroupMember member, CancellationToken cancellationToken = default)
     {
         var doc = GroupMemberDocument.FromEntity(member);
-        await _container.UpsertItemAsync(doc, new PartitionKey(member.ChatId), cancellationToken: cancellationToken);
+        await container.UpsertItemAsync(doc, new PartitionKey(member.ChatId), cancellationToken: cancellationToken);
     }
 }

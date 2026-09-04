@@ -18,6 +18,7 @@
 - **Data Models & Types:** Domain entities, data contracts, DTOs, value objects, and Cosmos DB document models must leverage C# `record` types (`record class` or `record struct`) where possible to enforce immutability and concise value semantics.
 - **Execution Model:** Azure Functions.
 - **Design Pattern:** Clean Architecture
+- **Primary Constructors (MUST):** All classes requiring dependency injection or initialization parameters MUST use C# primary constructors. Redundant private backing fields (e.g. `_field`) and underscore-prefixed parameters/identifiers (`_*`) are prohibited. Reference primary constructor parameters directly using standard camelCase naming.
 - **Resilience:** Outbound HTTP calls (Telegram API, external webhooks) must use `Polly` policies handling transient HTTP failures (408, 429, 5xx) with jittered exponential backoff respecting Telegram's `retry_after` response header.
 
 ### 2.2 Persistence & State Management
