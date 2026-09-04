@@ -123,6 +123,7 @@ As a group member and committee admin, I want polls to automatically close at th
 - **FR-016**: The system MUST allow authorized committee members to execute `/close_poll` to finalize voting and publish results immediately ahead of the scheduled deadline.
 - **FR-017**: The system MUST allow authorized committee members to execute `/cancel_poll` to void the active poll immediately, setting its state to `Cancelled` and notifying the group without publishing voting results.
 - **FR-018**: All user-facing bot messages (including poll notifications, reminders, status updates, error notices, and final results summaries) MUST be localized in Ukrainian.
+- **FR-019**: The system MUST support `/start` and `/help` commands to guide users and administrators on available operations, providing localized command syntax instructions.
 
 ### Key Entities *(include if feature involves data)*
 

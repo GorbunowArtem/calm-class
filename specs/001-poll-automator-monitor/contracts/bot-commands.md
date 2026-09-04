@@ -8,6 +8,17 @@
 
 ## 1. Command Specifications
 
+### 1.0 `/start` and `/help`
+Greets the user and outputs instructions on available commands.
+
+- **Syntax**: `/start` or `/help`
+- **Authorization**: Public (any chat participant or direct message user).
+- **Outbound Telegram Call**:
+  - Method: `sendMessage`
+  - Parameters:
+    - `chat_id`: Current chat ID.
+    - `text`: Ukrainian welcome text explaining `/create_poll`, `/close_poll`, and `/cancel_poll`.
+
 ### 1.1 `/create_poll`
 Creates a transparent, non-anonymous poll in the group chat.
 

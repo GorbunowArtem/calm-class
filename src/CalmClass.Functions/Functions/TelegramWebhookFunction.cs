@@ -2,6 +2,7 @@ namespace CalmClass.Functions.Functions;
 
 using System.Net;
 using System.Text.Json;
+using CalmClass.Application.Common.Interfaces;
 using CalmClass.Application.Features.Polls.Commands.CancelPoll;
 using CalmClass.Application.Features.Polls.Commands.ClosePoll;
 using CalmClass.Application.Features.Polls.Commands.CreatePoll;
@@ -15,6 +16,7 @@ public class TelegramWebhookFunction(
     ClosePollCommandHandler closePollHandler,
     CancelPollCommandHandler cancelPollHandler,
     IngestVoteCommandHandler ingestVoteHandler,
+    ITelegramBotClient telegramBotClient,
     ILogger<TelegramWebhookFunction> logger)
 {
     [Function("TelegramWebhook")]
@@ -23,6 +25,7 @@ public class TelegramWebhookFunction(
         CancellationToken cancellationToken)
     {
         logger.LogInformation("Received Telegram webhook event");
+        string? currentChatId = null;
 
         try
         {
@@ -45,8 +48,21 @@ public class TelegramWebhookFunction(
                     var text = textProp.GetString() ?? string.Empty;
                     var chatId = chat.GetProperty("id").GetInt64().ToString();
                     var userId = from.GetProperty("id").GetInt64();
+                    currentChatId = chatId;
 
-                    if (text.StartsWith("/create_poll", StringComparison.OrdinalIgnoreCase))
+                    if (text.StartsWith("/start", StringComparison.OrdinalIgnoreCase) || text.StartsWith("/help", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await telegramBotClient.SendMessageAsync(
+                            chatId,
+                            "👋 *Вітаємо у CalmClass\\!*\n\n" +
+                            "Бот для прозорих та автоматизованих опитувань у шкільних чатах\\.\n\n" +
+                            "📌 *Доступні команди:*\n" +
+                            "• `/create_poll \"Тема\" \"Варіант 1\" \"Варіант 2\" [години]` — створити нове опитування \\(лише для адмінів\\)\n" +
+                            "• `/close_poll` — достроково закрити опитування та отримати результати\n" +
+                            "• `/cancel_poll` — скасувати активне опитування",
+                            cancellationToken: cancellationToken);
+                    }
+                    else if (text.StartsWith("/create_poll", StringComparison.OrdinalIgnoreCase))
                     {
                         var spaceIdx = text.IndexOf(' ');
                         var rawArgs = spaceIdx >= 0 ? text[(spaceIdx + 1)..].Trim() : string.Empty;
@@ -119,6 +135,21 @@ public class TelegramWebhookFunction(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling Telegram webhook event");
+            if (!string.IsNullOrEmpty(currentChatId))
+            {
+                try
+                {
+                    await telegramBotClient.SendMessageAsync(
+                        currentChatId,
+                        "⚠️ Помилка з'єднання з базою даних Cosmos DB. Перевірте підключення до бази даних.",
+                        cancellationToken: cancellationToken);
+                }
+                catch (Exception sendEx)
+                {
+                    logger.LogWarning(sendEx, "Could not send error notification to chat {ChatId}", currentChatId);
+                }
+            }
+
             var okResponse = req.CreateResponse(HttpStatusCode.OK);
             return okResponse;
         }

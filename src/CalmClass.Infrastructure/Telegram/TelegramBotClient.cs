@@ -104,7 +104,37 @@ public class TelegramBotClient(
             () => httpClient.PostAsJsonAsync(url, payload, cancellationToken),
             cancellationToken);
 
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var err = await response.Content.ReadAsStringAsync(cancellationToken);
+            logger.LogWarning("Telegram sendMessage failed ({StatusCode}) for chat {ChatId}: {Error}", response.StatusCode, chatId, err);
+
+            // If MarkdownV2 parsing fails, retry as plain text without parse_mode
+            if (!string.IsNullOrEmpty(parseMode) && err.Contains("can't parse entities"))
+            {
+                logger.LogInformation("Retrying sendMessage as plain text for chat {ChatId}", chatId);
+                var fallbackPayload = new
+                {
+                    chat_id = chatId,
+                    text,
+                    disable_notification = disableNotification
+                };
+
+                var retryResponse = await ExecuteWithResilienceAsync(
+                    () => httpClient.PostAsJsonAsync(url, fallbackPayload, cancellationToken),
+                    cancellationToken);
+
+                if (retryResponse.IsSuccessStatusCode)
+                {
+                    var fallbackContent = await retryResponse.Content.ReadAsStringAsync(cancellationToken);
+                    using var fallbackDoc = JsonDocument.Parse(fallbackContent);
+                    return fallbackDoc.RootElement.GetProperty("result").GetProperty("message_id").GetInt32();
+                }
+            }
+
+            response.EnsureSuccessStatusCode();
+        }
+
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
 
         using var doc = JsonDocument.Parse(content);
