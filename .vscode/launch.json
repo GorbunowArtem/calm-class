@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach to .NET Functions",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:azureFunctions.pickProcess}"
+    },
+    {
+      "name": "Launch CalmClass Functions",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "func: host start",
+      "program": "${workspaceFolder}/src/CalmClass.Functions/bin/Debug/net10.0/CalmClass.Functions.dll",
+      "cwd": "${workspaceFolder}/src/CalmClass.Functions",
+      "stopAtEntry": false
+    }
+  ]
+}
