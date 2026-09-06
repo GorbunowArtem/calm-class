@@ -66,9 +66,10 @@ The system encompasses:
 
 ### 2.4 Production Release & Manual Approval Gate
 
-- **Decision**: Trigger the production promotion workflow (`prod-deploy.yml`) on `push` to `main` (when a PR is merged) or via `workflow_dispatch`. The deployment job is bound to a GitHub Environment named `prod` configured with **Required Reviewers**.
+- **Decision**: Trigger the production promotion workflow (`prod-deploy.yml`) exclusively via `workflow_dispatch` without automatic triggers. The deployment job is bound to a GitHub Environment named `prod` configured with **Required Reviewers**.
 - **Rationale**:
-  - Satisfies the user requirement: *"All deployments to `prod` must be happening only after the manual approval."*
+  - Satisfies the user requirement: *"All deployments to `prod` must be happening only after the manual approval"* and *"deploy-prod should not have an automatic trigger"*.
+  - Requires deliberate operator initiation via manual dispatch, followed by formal authorization via GitHub Environment protection rules before any cloud deployment occurs.
   - GitHub Environments provides tamper-proof, auditable human gates where designated approvers must review the deployment summary and approve before execution resumes.
   - Keeps the production release deterministic: the exact code merged into `main` is packaged, `prod` infrastructure is reconciled via Pulumi, and deployed with zero manual portal clicks.
 - **Alternatives Considered**:

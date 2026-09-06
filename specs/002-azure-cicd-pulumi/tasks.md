@@ -87,13 +87,13 @@
 
 ## Phase 6: User Story 3 - Gated Production Deployment with Manual Approval (Priority: P1)
 
-**Goal**: When changes are merged to `main`, package the release artifact, halt at the GitHub Environment `prod` manual approval gate, and upon authorized review, deploy infrastructure and application code to production and register the production Telegram webhook.
+**Goal**: Package the release artifact on manual workflow dispatch from `main`, halt at the GitHub Environment `prod` manual approval gate, and upon authorized review, deploy infrastructure and application code to production and register the production Telegram webhook without any automatic triggers.
 
-**Independent Test**: Trigger the production workflow from `main`. Confirm the deployment halts in `Waiting for review` on `prod`. Approve the deployment in GitHub and verify that `pulumi up --stack prod --yes`, Function zip deployment, and webhook registration complete successfully.
+**Independent Test**: Manually trigger the production workflow via `workflow_dispatch` from `main`. Confirm the deployment halts in `Waiting for review` on `prod`. Approve the deployment in GitHub and verify that `pulumi up --stack prod --yes`, Function zip deployment, and webhook registration complete successfully.
 
 ### Implementation for User Story 3
 
-- [X] T021 [P] [US3] Create production release workflow skeleton with push/dispatch triggers and concurrency in `.github/workflows/prod-deploy.yml`
+- [X] T021 [P] [US3] Create production release workflow skeleton with manual workflow_dispatch trigger only (no automatic trigger) and concurrency in `.github/workflows/prod-deploy.yml`
 - [X] T022 [US3] Implement `build-package` job compiling Functions and uploading release artifact in `.github/workflows/prod-deploy.yml`
 - [X] T023 [US3] Implement `deploy-prod` job guarded by `prod` environment manual approval gate in `.github/workflows/prod-deploy.yml`
 - [X] T024 [US3] Add Pulumi infrastructure reconciliation step (`pulumi up --stack prod --yes`) to `deploy-prod` in `.github/workflows/prod-deploy.yml`
