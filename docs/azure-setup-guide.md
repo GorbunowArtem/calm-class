@@ -267,11 +267,12 @@ The App Registration requires permissions across the subscription to provision r
 | :--- | :--- | :--- |
 | **Contributor** | Subscription | Create and manage resource groups, Cosmos DB, Key Vault, Storage, App Service Plans, and Function Apps. |
 | **Role Based Access Control Administrator** *(or User Access Administrator)* | Subscription | Allows Pulumi to grant the Function App's Managed Identity the `Key Vault Secrets User` role on the Key Vault. |
+| **Key Vault Administrator** | Subscription | Allows Pulumi to create, read, update, and delete secrets in RBAC-enabled Key Vaults. |
 | **Storage Blob Data Contributor** | `rg-calmclass-admin` (or Subscription) | Read, write, and lock state blobs in `stcalmclassadmin/pulumi-state`. |
 
 ### In Azure Portal:
 
-#### 1. Assign Contributor & RBAC Administrator on Subscription:
+#### 1. Assign Contributor, RBAC Administrator, and Key Vault Administrator on Subscription:
 1. Navigate to **Subscriptions** -> select your subscription.
 2. Click **Access control (IAM)** in the left menu.
 3. Click **+ Add** -> **Add role assignment**:
@@ -283,6 +284,11 @@ The App Registration requires permissions across the subscription to provision r
 4. Repeat role assignment for role: **Role Based Access Control Administrator** (or **User Access Administrator** if your organization policy mandates it):
    - Click **+ Add** -> **Add role assignment**.
    - **Role**: Select **Role Based Access Control Administrator**.
+   - Select member: `app-calmclass-cicd`.
+   - Click **Review + assign**.
+5. Repeat role assignment for role: **Key Vault Administrator**:
+   - Click **+ Add** -> **Add role assignment**.
+   - **Role**: Select **Key Vault Administrator**.
    - Select member: `app-calmclass-cicd`.
    - Click **Review + assign**.
 
@@ -310,6 +316,13 @@ az role assignment create \
   --assignee-object-id "$SP_OBJECT_ID" \
   --assignee-principal-type "ServicePrincipal" \
   --role "Role Based Access Control Administrator" \
+  --scope "/subscriptions/$SUBSCRIPTION_ID"
+
+# Assign Key Vault Administrator on Subscription
+az role assignment create \
+  --assignee-object-id "$SP_OBJECT_ID" \
+  --assignee-principal-type "ServicePrincipal" \
+  --role "Key Vault Administrator" \
   --scope "/subscriptions/$SUBSCRIPTION_ID"
 
 # Assign Storage Blob Data Contributor on Admin Resource Group

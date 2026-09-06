@@ -75,6 +75,9 @@ public class CalmClassStack : Stack
         {
             ResourceGroupName = resourceGroup.Name,
             AccountName = storageAccount.Name
+        }, new InvokeOutputOptions
+        {
+            DependsOn = { storageAccount }
         });
 
         var storageConnectionString = Output.Tuple(storageAccount.Name, storageKeys).Apply(t =>
@@ -134,6 +137,9 @@ public class CalmClassStack : Stack
         {
             ResourceGroupName = resourceGroup.Name,
             AccountName = cosmosAccount.Name
+        }, new InvokeOutputOptions
+        {
+            DependsOn = { cosmosAccount }
         });
 
         var cosmosPrimaryConnectionString = cosmosConnectionStrings.Apply(c => c.ConnectionStrings[0].ConnectionString);

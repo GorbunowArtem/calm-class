@@ -48,7 +48,7 @@ Configure Federated Credentials on an Azure Entra ID App Registration:
    - Credential 1 (PR Preview): Entity `Pull request` -> Subject `repo:GorbunowArtem@15319213/calm-class@1357346431:pull_request`
    - Credential 2 (Dev Deploy): Entity `Environment: dev` -> Subject `repo:GorbunowArtem@15319213/calm-class@1357346431:environment:dev`
    - Credential 3 (Prod Deploy): Entity `Environment: prod` -> Subject `repo:GorbunowArtem@15319213/calm-class@1357346431:environment:prod`
-3. Assign `Contributor` and `User Access Administrator` (or `Role Based Access Control Administrator`) on target subscription.
+3. Assign `Contributor`, `Role Based Access Control Administrator` (or `User Access Administrator`), and `Key Vault Administrator` on target subscription.
 
 ### 2.4 GitHub Repository Secrets & Environments
 
