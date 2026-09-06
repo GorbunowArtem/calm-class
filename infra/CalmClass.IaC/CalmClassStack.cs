@@ -220,7 +220,8 @@ public class CalmClassStack : Stack
         {
             Name = $"asp-{prefix}",
             ResourceGroupName = resourceGroup.Name,
-            Kind = "functionapp,linux",
+            Location = resourceGroup.Location,
+            Kind = "Linux",
             Reserved = true,
             Sku = new WebInputs.SkuDescriptionArgs
             {
@@ -235,14 +236,17 @@ public class CalmClassStack : Stack
         {
             Name = functionAppName,
             ResourceGroupName = resourceGroup.Name,
+            Location = resourceGroup.Location,
             ServerFarmId = appServicePlan.Id,
             Kind = "functionapp,linux",
+            Reserved = true,
             Identity = new WebInputs.ManagedServiceIdentityArgs
             {
                 Type = Web.ManagedServiceIdentityType.SystemAssigned
             },
             SiteConfig = new WebInputs.SiteConfigArgs
             {
+                AlwaysOn = false,
                 LinuxFxVersion = "DOTNET-ISOLATED|10.0",
                 NetFrameworkVersion = "v10.0",
                 Use32BitWorkerProcess = false,

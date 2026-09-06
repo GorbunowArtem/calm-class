@@ -41,12 +41,13 @@ az storage container create --name "pulumi-state" --account-name "stcalmclassadm
 
 Configure Federated Credentials on an Azure Entra ID App Registration:
 1. Create App Registration: `app-calmclass-cicd`.
-2. Add Federated Credential:
+2. Add Federated Credentials:
    - Organization: `GorbunowArtem` (ID: `15319213`)
    - Repository: `calm-class` (ID: `1357346431`)
    - Issuer: `https://token.actions.githubusercontent.com`
-   - Subject: `repo:GorbunowArtem/calm-class:pull_request` (for PR CI/CD)
-   - Subject: `repo:GorbunowArtem/calm-class:environment:prod` (for Prod deploy)
+   - Credential 1 (PR Preview): Entity `Pull request` -> Subject `repo:GorbunowArtem@15319213/calm-class@1357346431:pull_request`
+   - Credential 2 (Dev Deploy): Entity `Environment: dev` -> Subject `repo:GorbunowArtem@15319213/calm-class@1357346431:environment:dev`
+   - Credential 3 (Prod Deploy): Entity `Environment: prod` -> Subject `repo:GorbunowArtem@15319213/calm-class@1357346431:environment:prod`
 3. Assign `Contributor` and `User Access Administrator` (or `Role Based Access Control Administrator`) on target subscription.
 
 ### 2.4 GitHub Repository Secrets & Environments

@@ -178,57 +178,79 @@ Federated credentials establish trust between GitHub Actions and Microsoft Entra
 >   gh api repos/GorbunowArtem/calm-class --jq .id # Returns: 1357346431
 >   ```
 
-4. Configure **Scenario A: Pull Request Validation & Dev Deploy**:
+4. Configure **Scenario A: Pull Request Validation (pulumi-preview)**:
    - **Entity type**: **Pull request**.
    - **Name**: `gh-actions-calmclass-pr`.
-   - **Description**: `GitHub Actions OIDC for pull requests (Dev preview and deploy)`.
-   - The Subject identifier is automatically generated: `repo:GorbunowArtem/calm-class:pull_request`.
+   - **Description**: `GitHub Actions OIDC for pull requests (Dev preview)`.
+   - Subject identifier: `repo:GorbunowArtem@15319213/calm-class@1357346431:pull_request` (or `repo:GorbunowArtem/calm-class:pull_request`).
    - Click **Add**.
-5. Click **+ Add credential** again for **Scenario B: Production Release**:
+
+5. Click **+ Add credential** for **Scenario B: Development Environment Deployment (deploy-dev)**:
    - **Federated credential scenario**: **GitHub Actions deploying Azure resources**.
-   - **Organization**: `GorbunowArtem`.
-   - **Repository**: `calm-class`.
+   - **Organization**: `GorbunowArtem` (ID: `15319213`).
+   - **Repository**: `calm-class` (ID: `1357346431`).
+   - **Entity type**: **Environment**.
+   - **Environment name**: `dev`.
+   - **Name**: `gh-actions-calmclass-dev`.
+   - **Description**: `GitHub Actions OIDC for dev environment deployment`.
+   - Subject identifier: `repo:GorbunowArtem@15319213/calm-class@1357346431:environment:dev`.
+   - Click **Add**.
+
+6. Click **+ Add credential** for **Scenario C: Production Environment Release (deploy-prod)**:
+   - **Federated credential scenario**: **GitHub Actions deploying Azure resources**.
+   - **Organization**: `GorbunowArtem` (ID: `15319213`).
+   - **Repository**: `calm-class` (ID: `1357346431`).
    - **Entity type**: **Environment**.
    - **Environment name**: `prod`.
    - **Name**: `gh-actions-calmclass-prod`.
-   - **Description**: `GitHub Actions OIDC for manual production release`.
-   - Subject identifier: `repo:GorbunowArtem/calm-class:environment:prod`.
+   - **Description**: `GitHub Actions OIDC for production environment release`.
+   - Subject identifier: `repo:GorbunowArtem@15319213/calm-class@1357346431:environment:prod`.
    - Click **Add**.
-6. *(Recommended)* Click **+ Add credential** for **Scenario C: Main Branch (Direct Dispatch)**:
+
+7. *(Recommended)* Click **+ Add credential** for **Scenario D: Main Branch (Direct Dispatch)**:
    - **Entity type**: **Branch**.
    - **Branch name**: `main`.
    - **Name**: `gh-actions-calmclass-main`.
    - **Description**: `GitHub Actions OIDC for main branch dispatch`.
-   - Subject identifier: `repo:GorbunowArtem/calm-class:ref:refs/heads/main`.
+   - Subject identifier: `repo:GorbunowArtem@15319213/calm-class@1357346431:ref:refs/heads/main`.
    - Click **Add**.
 
 ### Azure CLI Equivalent:
 ```bash
 APP_ID=$(az ad app list --display-name "app-calmclass-cicd" --query "[0].appId" -o tsv)
 
-# Pull request credential
+# 1. Pull request credential (for pulumi-preview)
 az ad app federated-credential create --id "$APP_ID" --parameters '{
   "name": "gh-actions-calmclass-pr",
   "issuer": "https://token.actions.githubusercontent.com",
-  "subject": "repo:GorbunowArtem/calm-class:pull_request",
-  "description": "GitHub Actions PR validation and dev deployment",
+  "subject": "repo:GorbunowArtem@15319213/calm-class@1357346431:pull_request",
+  "description": "GitHub Actions PR validation preview",
   "audiences": ["api://AzureADTokenExchange"]
 }'
 
-# Prod environment credential
+# 2. Dev environment credential (for deploy-dev)
+az ad app federated-credential create --id "$APP_ID" --parameters '{
+  "name": "gh-actions-calmclass-dev",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:GorbunowArtem@15319213/calm-class@1357346431:environment:dev",
+  "description": "GitHub Actions dev environment deployment",
+  "audiences": ["api://AzureADTokenExchange"]
+}'
+
+# 3. Prod environment credential (for deploy-prod)
 az ad app federated-credential create --id "$APP_ID" --parameters '{
   "name": "gh-actions-calmclass-prod",
   "issuer": "https://token.actions.githubusercontent.com",
-  "subject": "repo:GorbunowArtem/calm-class:environment:prod",
+  "subject": "repo:GorbunowArtem@15319213/calm-class@1357346431:environment:prod",
   "description": "GitHub Actions production release",
   "audiences": ["api://AzureADTokenExchange"]
 }'
 
-# Main branch credential
+# 4. Main branch credential (for direct dispatch)
 az ad app federated-credential create --id "$APP_ID" --parameters '{
   "name": "gh-actions-calmclass-main",
   "issuer": "https://token.actions.githubusercontent.com",
-  "subject": "repo:GorbunowArtem/calm-class:ref:refs/heads/main",
+  "subject": "repo:GorbunowArtem@15319213/calm-class@1357346431:ref:refs/heads/main",
   "description": "GitHub Actions main branch dispatch",
   "audiences": ["api://AzureADTokenExchange"]
 }'
