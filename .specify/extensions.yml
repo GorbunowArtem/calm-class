@@ -1,0 +1,6 @@
+hooks:
+  after_implement:
+    - name: reconcile-spec
+      description: "Reconcile and update spec.md with the as-built implementation"
+      prompt: "Review the implemented codebase against spec.md and related contracts in the active feature directory. Update spec.md to incorporate any resolved edge cases, schema adjustments, or design refinements made during coding."
+      optional: false

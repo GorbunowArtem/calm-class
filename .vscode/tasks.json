@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "clean",
+      "command": "dotnet",
+      "args": [
+        "clean",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "type": "process",
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "-m:1",
+        "src/CalmClass.Functions/CalmClass.Functions.csproj",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "type": "process",
+      "dependsOn": "clean",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "func: host start",
+      "type": "shell",
+      "dependsOn": "build",
+      "options": {
+        "cwd": "${workspaceFolder}/src/CalmClass.Functions/bin/Debug/net10.0"
+      },
+      "command": "func start",
+      "isBackground": true,
+      "problemMatcher": "$func-dotnet-isolated-watch"
+    }
+  ]
+}

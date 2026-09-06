@@ -1,0 +1,19 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "Telegram__BotToken": "YOUR_TELEGRAM_BOT_TOKEN_HERE",
+    "Telegram__SecretToken": "YOUR_RANDOM_SECRET_TOKEN_HERE",
+    "Telegram__BaseUrl": "https://api.telegram.org",
+    "CosmosDb__ConnectionString": "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
+    "CosmosDb__DatabaseName": "CalmClassDb",
+    "CosmosDb__ContainerName": "Polls",
+    "CosmosDb__UseInMemory": "false",
+    "QuietHours__StartHour": "20",
+    "QuietHours__EndHour": "8",
+    "QuietHours__TimeZoneId": "Europe/Kyiv",
+    "Poll__DefaultDurationHours": "24",
+    "Poll__ReminderHoursBeforeExpiry": "6"
+  }
+}
