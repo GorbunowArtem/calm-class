@@ -71,21 +71,29 @@ public class CalmClassStack : Stack
             AllowBlobPublicAccess = false
         });
 
-        var storageKeys = Storage.ListStorageAccountKeys.Invoke(new Storage.ListStorageAccountKeysInvokeArgs
+        Output<string> storageConnectionString;
+        if (Deployment.Instance.IsDryRun)
         {
-            ResourceGroupName = resourceGroup.Name,
-            AccountName = storageAccount.Name
-        }, new InvokeOutputOptions
+            storageConnectionString = Output.Create($"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey=placeholder;EndpointSuffix=core.windows.net");
+        }
+        else
         {
-            DependsOn = { storageAccount }
-        });
+            var storageKeys = Storage.ListStorageAccountKeys.Invoke(new Storage.ListStorageAccountKeysInvokeArgs
+            {
+                ResourceGroupName = resourceGroup.Name,
+                AccountName = storageAccount.Name
+            }, new InvokeOutputOptions
+            {
+                DependsOn = { storageAccount }
+            });
 
-        var storageConnectionString = Output.Tuple(storageAccount.Name, storageKeys).Apply(t =>
-        {
-            var accountName = t.Item1;
-            var key = t.Item2.Keys[0].Value;
-            return $"DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={key};EndpointSuffix=core.windows.net";
-        });
+            storageConnectionString = Output.Tuple(storageAccount.Name, storageKeys).Apply(t =>
+            {
+                var accountName = t.Item1;
+                var key = t.Item2.Keys[0].Value;
+                return $"DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={key};EndpointSuffix=core.windows.net";
+            });
+        }
 
         // 3. Azure Cosmos DB (Serverless)
         var cosmosAccountName = $"cosmos-{prefix}";
@@ -133,16 +141,24 @@ public class CalmClassStack : Stack
             }
         });
 
-        var cosmosConnectionStrings = DocumentDB.ListDatabaseAccountConnectionStrings.Invoke(new DocumentDB.ListDatabaseAccountConnectionStringsInvokeArgs
+        Output<string> cosmosPrimaryConnectionString;
+        if (Deployment.Instance.IsDryRun)
         {
-            ResourceGroupName = resourceGroup.Name,
-            AccountName = cosmosAccount.Name
-        }, new InvokeOutputOptions
+            cosmosPrimaryConnectionString = Output.Create($"AccountEndpoint=https://{cosmosAccountName}.documents.azure.com:443/;AccountKey=placeholder;");
+        }
+        else
         {
-            DependsOn = { cosmosAccount }
-        });
+            var cosmosConnectionStrings = DocumentDB.ListDatabaseAccountConnectionStrings.Invoke(new DocumentDB.ListDatabaseAccountConnectionStringsInvokeArgs
+            {
+                ResourceGroupName = resourceGroup.Name,
+                AccountName = cosmosAccount.Name
+            }, new InvokeOutputOptions
+            {
+                DependsOn = { cosmosAccount }
+            });
 
-        var cosmosPrimaryConnectionString = cosmosConnectionStrings.Apply(c => c.ConnectionStrings[0].ConnectionString);
+            cosmosPrimaryConnectionString = cosmosConnectionStrings.Apply(c => c.ConnectionStrings[0].ConnectionString);
+        }
 
         // 4. Log Analytics & Application Insights
         var logAnalytics = new OperationalInsights.Workspace($"log-{prefix}", new OperationalInsights.WorkspaceArgs
