@@ -88,6 +88,18 @@ def audit_csharp_files(root_dir="."):
             if pos_matches:
                 violations.append(f"{path}: Positional regex group indexing {pos_matches} detected; use named groups")
 
+            # 7: Newtonsoft.Json forbidden
+            if "Newtonsoft" in content:
+                violations.append(f"{path}: References 'Newtonsoft.Json'. System.Text.Json must be used exclusively.")
+
+        for file in files:
+            if file.endswith(".csproj") or file.endswith(".props"):
+                proj_path = os.path.join(root, file)
+                with open(proj_path, "r", encoding="utf-8") as pf:
+                    proj_content = pf.read()
+                if "Newtonsoft" in proj_content and "AzureCosmosDisableNewtonsoftJsonCheck" not in proj_content:
+                    violations.append(f"{proj_path}: References 'Newtonsoft.Json'. System.Text.Json must be used exclusively.")
+
     return violations
 
 if __name__ == "__main__":

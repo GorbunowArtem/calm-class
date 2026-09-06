@@ -25,6 +25,7 @@
 - **Linear Orchestration & Flattened Decision Trees (MUST):** Handlers must avoid deeply nested if/else statements and complex decision trees. Use early return guard clauses and private helper methods (`IsAuthorized...`, `HasConflict...`, `FailAsync`, `PublishAndTrack...`) to achieve a readable, linear pipeline.
 - **Separation of Concerns: Parsing & Validation Decomposition (MUST):** Complex argument parsing, tokenization, and domain constraint validations must not live inside command handlers. Extract them into dedicated, testable services with interfaces, return strongly typed result records, and register them in dependency injection.
 - **Strict `.editorconfig` Compliance (MUST):** Zero tolerance for multiple consecutive blank lines. Enforce file-scoped namespaces, using directives inside namespaces sorted System first, `var` usage, target-typed `new()`, and explicit braces.
+- **System.Text.Json Exclusively (MUST):** Always use `System.Text.Json` and `System.Text.Json.Serialization` for JSON operations, DTOs, and Cosmos DB document mapping. The `Newtonsoft.Json` library is NOT preferred and MUST NOT be referenced or used. Configure Cosmos DB with `CosmosClientOptions.UseSystemTextJsonSerializerWithOptions`.
 - **Resilience:** Outbound HTTP calls (Telegram API, external webhooks) must use `Polly` policies handling transient HTTP failures (408, 429, 5xx) with jittered exponential backoff respecting Telegram's `retry_after` response header.
 
 ### 2.2 Persistence & State Management

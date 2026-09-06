@@ -46,6 +46,12 @@
   - Explicit braces `{}` are mandatory for all control-flow statements (`csharp_prefer_braces = true:warning`).
   - Maximum line length is 166 characters; wrap arguments and object initializers cleanly.
 
+- **System.Text.Json Exclusively (Mandatory):**
+  - Always use `System.Text.Json` and `System.Text.Json.Serialization` for all JSON operations, DTO serialization, and document mapping.
+  - The `Newtonsoft.Json` library is NOT preferred and MUST NOT be referenced or used across any project.
+  - Serialization and validation attributes on positional records MUST explicitly use `[property: JsonPropertyName("...")]`.
+  - For Azure Cosmos DB, configure `CosmosClientOptions.UseSystemTextJsonSerializerWithOptions`.
+
 ## Spec-Driven Development & Living Documentation
 
 - **Living Spec Synchronization:**

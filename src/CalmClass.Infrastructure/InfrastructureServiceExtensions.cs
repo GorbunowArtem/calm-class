@@ -1,6 +1,8 @@
 namespace CalmClass.Infrastructure;
 
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CalmClass.Application.Common.Interfaces;
 using CalmClass.Application.Common.Options;
 using CalmClass.Infrastructure.Persistence;
@@ -45,9 +47,10 @@ public static class InfrastructureServiceExtensions
                 var options = sp.GetRequiredService<IOptions<CalmClassOptions>>().Value.CosmosDb;
                 return new CosmosClient(options.ConnectionString, new CosmosClientOptions
                 {
-                    SerializerOptions = new CosmosSerializationOptions
+                    UseSystemTextJsonSerializerWithOptions = new JsonSerializerOptions
                     {
-                        PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
                     }
                 });
             });
@@ -60,4 +63,5 @@ public static class InfrastructureServiceExtensions
         return services;
     }
 }
+
 

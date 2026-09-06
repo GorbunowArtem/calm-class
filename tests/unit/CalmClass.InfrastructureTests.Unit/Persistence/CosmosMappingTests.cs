@@ -1,5 +1,7 @@
 namespace CalmClass.InfrastructureTests.Unit.Persistence;
 
+using System;
+using System.Text.Json;
 using CalmClass.Application.Domain.Entities;
 using CalmClass.Application.Domain.Enums;
 using CalmClass.Infrastructure.Persistence.Documents;
@@ -100,4 +102,36 @@ public class CosmosMappingTests
         await Assert.That(back.Role).IsEqualTo(MemberRole.Admin);
         await Assert.That(back.IsActive).IsTrue();
     }
+
+    [Test]
+    public async Task TrackedPollDocument_SystemTextJsonSerialization_RoundtripSucceeds()
+    {
+        var doc = new TrackedPollDocument(
+            Id: "poll_123",
+            ChatId: "-100",
+            PollId: "123",
+            MessageId: 10,
+            Question: "Question?",
+            Options: new[] { "A", "B" },
+            AllowsMultipleAnswers: false,
+            CreatedAtUtc: DateTime.UtcNow,
+            ExpiresAtUtc: DateTime.UtcNow.AddHours(24),
+            Status: "Open"
+        );
+
+        var json = JsonSerializer.Serialize(doc);
+        using var jsonDoc = JsonDocument.Parse(json);
+        var root = jsonDoc.RootElement;
+
+        await Assert.That(root.GetProperty("id").GetString()).IsEqualTo("poll_123");
+        await Assert.That(root.GetProperty("chatId").GetString()).IsEqualTo("-100");
+        await Assert.That(root.GetProperty("pollId").GetString()).IsEqualTo("123");
+        await Assert.That(root.GetProperty("type").GetString()).IsEqualTo("TrackedPoll");
+
+        var deserialized = JsonSerializer.Deserialize<TrackedPollDocument>(json);
+        await Assert.That(deserialized).IsNotNull();
+        await Assert.That(deserialized!.Id).IsEqualTo("poll_123");
+        await Assert.That(deserialized.ChatId).IsEqualTo("-100");
+    }
 }
+
