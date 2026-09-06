@@ -18,16 +18,6 @@ public class CreatePollCommandHandler(
 {
     private const string CommandName = "/create_poll";
 
-    public CreatePollCommandHandler(
-        IPollRepository pollRepository,
-        ITelegramBotClient telegramBotClient,
-        IDateTimeProvider dateTimeProvider,
-        IOptions<CalmClassOptions> options,
-        ILogger<CreatePollCommandHandler> logger)
-        : this(pollRepository, telegramBotClient, dateTimeProvider, options, new CreatePollArgsParser(), logger)
-    {
-    }
-
     public async Task<CreatePollResult> HandleAsync(CreatePollCommand command, CancellationToken cancellationToken = default)
     {
         if (!await IsAuthorizedAdminAsync(command.ChatId, command.UserId, cancellationToken))

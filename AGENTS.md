@@ -57,3 +57,35 @@
 - **Living Spec Synchronization:**
   - Specifications (`spec.md`) are living source-of-truth documents.
   - Upon completing any feature implementation or significant code change, review and synchronize `spec.md` (and related `contracts/`) with the as-built reality (including edge cases, parameter adjustments, or schema nuances).
+
+## Environment Quirks & Real-World Discoveries
+
+- **Terminal Environment & CLI Flags:**
+  - Always export the local .NET and NuGet environment variables when executing build/test commands:
+    ```bash
+    export DOTNET_CLI_HOME=/Users/Artem_Horbunov1/EPAM/calm-class/.dotnet
+    export NUGET_PACKAGES=/Users/Artem_Horbunov1/.nuget/packages
+    export DOTNET_SKIP_WORKLOAD_INTEGRITY_CHECK=true
+    ```
+  - Prefer `dotnet build -m:1 --no-restore` to avoid parallel MSBuild node contention and redundant restore network lookups.
+
+- **Microsoft Testing Platform Runner & Sandboxed IPC:**
+  - Running tests via `dotnet test` invokes the Microsoft Testing Platform IPC via named pipes in `/tmp`. In secure sandboxes without `/tmp` socket permissions, this fails with exit code 134 (`System.Net.Sockets.SocketException: Permission denied /tmp/...`).
+  - **Workaround:** Execute the compiled test assemblies directly with `dotnet exec`:
+    ```bash
+    dotnet exec tests/unit/CalmClass.ApplicationTests.Unit/bin/Debug/net10.0/CalmClass.ApplicationTests.Unit.dll --output Detailed
+    dotnet exec tests/unit/CalmClass.InfrastructureTests.Unit/bin/Debug/net10.0/CalmClass.InfrastructureTests.Unit.dll --output Detailed
+    ```
+
+- **Persistence & In-Memory Mode Strategy:**
+  - `CosmosPollRepository` must remain strictly dedicated to Cosmos DB SDK operations. Do NOT wrap operations in in-memory fallback delegates (`Func<Task<T>>`).
+  - For offline local development or fast unit/integration testing without Docker, set `"CosmosDb:UseInMemory": true` or `ConnectionString: "InMemory"`.
+  - In `InfrastructureServiceExtensions.cs`, `InMemoryPollRepository` is registered as a **`Singleton`** so state survives across function invocations in the Isolated Worker process. In production, `CosmosPollRepository` is registered as **`Scoped`**.
+
+- **Automated Clean Code Validation:**
+  - Before completing any task or pull request, always run:
+    ```bash
+    python3 .agents/skills/clean-code-audit/scripts/audit.py
+    ```
+    This validates single-type-per-file, Roslyn using directive sorting, .editorconfig rules, and ensures zero references to `Newtonsoft.Json`.
+

@@ -1,8 +1,8 @@
 # Tasks: Non-Anonymous Poll Automator & Follow-Up Monitor
 
 **Feature Directory**: `specs/001-poll-automator-monitor`  
-**Date**: 2026-09-04  
-**Status**: Complete & Verified Live  
+**Date**: 2026-09-06  
+**Status**: Implemented & Verified Live  
 **Specification**: [specs/001-poll-automator-monitor/spec.md](file:///Users/Artem_Horbunov1/EPAM/calm-class/specs/001-poll-automator-monitor/spec.md)  
 **Implementation Plan**: [specs/001-poll-automator-monitor/plan.md](file:///Users/Artem_Horbunov1/EPAM/calm-class/specs/001-poll-automator-monitor/plan.md)  
 
@@ -83,12 +83,12 @@
 **Independent Test**: Advance time on an active poll to within 6 hours of expiry. Trigger the monitor function to verify that all unvoted members receive a single batched notification and poll status becomes `Reminded`.
 
 ### Tests for User Story 3 ⚠️
-- [ ] T023 [P] [US3] Unit tests for `PollMonitorService` reminder threshold calculation and quiet hours detection in `tests/unit/CalmClass.ApplicationTests.Unit/Features/PollMonitorReminderTests.cs`
-- [ ] T024 [P] [US3] Unit tests verifying reminder deduplication and silent notification flag behavior in `tests/unit/CalmClass.ApplicationTests.Unit/Features/PollReminderExecutionTests.cs`
+- [x] T023 [P] [US3] Unit tests for `PollMonitorService` reminder threshold calculation and quiet hours detection in `tests/unit/CalmClass.ApplicationTests.Unit/Features/PollMonitorReminderTests.cs`
+- [x] T024 [P] [US3] Unit tests verifying reminder deduplication and silent notification flag behavior in `tests/unit/CalmClass.ApplicationTests.Unit/Features/PollReminderExecutionTests.cs`
 
 ### Implementation for User Story 3
-- [ ] T025 [US3] Implement `PollMonitorService.ProcessRemindersAsync` identifying unvoted active members and batching mentions (`@username` or `[Name](tg://user?id=...)`) with quiet hours (20:00–08:00 Kyiv) silent notifications in `src/CalmClass.Application/Features/Polls/Services/PollMonitorService.cs`
-- [ ] T026 [US3] Implement `PollMonitorFunction` with `TimerTrigger` (cron: `0 */5 * * * *`) in `src/CalmClass.Functions/Functions/PollMonitorFunction.cs`
+- [x] T025 [US3] Implement `PollMonitorService.ProcessRemindersAsync` identifying unvoted active members and batching mentions (`@username` or `[Name](tg://user?id=...)`) with quiet hours (20:00–08:00 Kyiv) silent notifications in `src/CalmClass.Application/Features/Polls/Services/PollMonitorService.cs`
+- [x] T026 [US3] Implement `PollMonitorFunction` with `TimerTrigger` (cron: `0 */5 * * * *`) in `src/CalmClass.Functions/Functions/PollMonitorFunction.cs`
 
 **Checkpoint**: Automated follow-up reminders execute reliably without spam or duplicate alerts.
 
@@ -101,14 +101,14 @@
 **Independent Test**: Trigger closure on an expired poll or send `/close_poll`. Verify that voting stops in Telegram, the aggregate summary is posted with turnout percentage, and individual voter breakdown is accessible only to admins.
 
 ### Tests for User Story 4 ⚠️
-- [ ] T027 [P] [US4] Unit tests for vote tallying, percentage calculations, tie resolution, and summary formatting in `tests/unit/CalmClass.ApplicationTests.Unit/Features/PollClosureTallyTests.cs`
-- [ ] T028 [P] [US4] Unit tests for `/close_poll` and `/cancel_poll` command handlers in `tests/unit/CalmClass.ApplicationTests.Unit/Features/ManualPollClosureTests.cs`
+- [x] T027 [P] [US4] Unit tests for vote tallying, percentage calculations, tie resolution, and summary formatting in `tests/unit/CalmClass.ApplicationTests.Unit/Features/PollClosureTallyTests.cs`
+- [x] T028 [P] [US4] Unit tests for `/close_poll` and `/cancel_poll` command handlers in `tests/unit/CalmClass.ApplicationTests.Unit/Features/ManualPollClosureTests.cs`
 
 ### Implementation for User Story 4
-- [ ] T029 [US4] Implement `ClosePollCommand` and `CancelPollCommand` handlers for early admin termination in `src/CalmClass.Application/Features/Polls/Commands/ClosePoll/ClosePollCommandHandler.cs` and `src/CalmClass.Application/Features/Polls/Commands/CancelPoll/CancelPollCommandHandler.cs`
-- [ ] T030 [US4] Implement `PollMonitorService.ProcessClosuresAsync` for automatic deadline closure and Ukrainian aggregated summary publication in `src/CalmClass.Application/Features/Polls/Services/PollMonitorService.cs`
-- [ ] T031 [US4] Integrate `/close_poll` and `/cancel_poll` commands into `src/CalmClass.Functions/Functions/TelegramWebhookFunction.cs`
-- [ ] T032 [US4] Implement admin audit query service for retrieving detailed per-voter choices in `src/CalmClass.Application/Features/Polls/Services/PollAuditService.cs`
+- [x] T029 [US4] Implement `ClosePollCommand` and `CancelPollCommand` handlers for early admin termination in `src/CalmClass.Application/Features/Polls/Commands/ClosePoll/ClosePollCommandHandler.cs` and `src/CalmClass.Application/Features/Polls/Commands/CancelPoll/CancelPollCommandHandler.cs`
+- [x] T030 [US4] Implement `PollMonitorService.ProcessClosuresAsync` for automatic deadline closure and Ukrainian aggregated summary publication in `src/CalmClass.Application/Features/Polls/Services/PollMonitorService.cs`
+- [x] T031 [US4] Integrate `/close_poll` and `/cancel_poll` commands into `src/CalmClass.Functions/Functions/TelegramWebhookFunction.cs`
+- [x] T032 [US4] Implement admin audit query service for retrieving detailed per-voter choices in `src/CalmClass.Application/Features/Polls/Services/PollAuditService.cs`
 
 **Checkpoint**: All user stories are implemented, operational, and verifiable.
 

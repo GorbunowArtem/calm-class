@@ -16,6 +16,7 @@ public class CreatePollAuthorizationTests
     private readonly Mock<ITelegramBotClient> _botClientMock = new();
     private readonly Mock<IDateTimeProvider> _timeProviderMock = new();
     private readonly IOptions<CalmClassOptions> _options = Options.Create(new CalmClassOptions());
+    private readonly ICreatePollArgsParser _argsParser = new CreatePollArgsParser();
     private readonly DateTime _fixedNow = new(2026, 9, 4, 12, 0, 0, DateTimeKind.Utc);
 
     public CreatePollAuthorizationTests()
@@ -38,7 +39,7 @@ public class CreatePollAuthorizationTests
             });
 
         var handler = new CreatePollCommandHandler(
-            _pollRepoMock.Object, _botClientMock.Object, _timeProviderMock.Object, _options, NullLogger<CreatePollCommandHandler>.Instance);
+            _pollRepoMock.Object, _botClientMock.Object, _timeProviderMock.Object, _options, _argsParser, NullLogger<CreatePollCommandHandler>.Instance);
 
         var command = new CreatePollCommand
         {
@@ -71,7 +72,7 @@ public class CreatePollAuthorizationTests
             });
 
         var handler = new CreatePollCommandHandler(
-            _pollRepoMock.Object, _botClientMock.Object, _timeProviderMock.Object, _options, NullLogger<CreatePollCommandHandler>.Instance);
+            _pollRepoMock.Object, _botClientMock.Object, _timeProviderMock.Object, _options, _argsParser, NullLogger<CreatePollCommandHandler>.Instance);
 
         var command = new CreatePollCommand
         {
@@ -115,7 +116,7 @@ public class CreatePollAuthorizationTests
             });
 
         var handler = new CreatePollCommandHandler(
-            _pollRepoMock.Object, _botClientMock.Object, _timeProviderMock.Object, _options, NullLogger<CreatePollCommandHandler>.Instance);
+            _pollRepoMock.Object, _botClientMock.Object, _timeProviderMock.Object, _options, _argsParser, NullLogger<CreatePollCommandHandler>.Instance);
 
         var command = new CreatePollCommand
         {

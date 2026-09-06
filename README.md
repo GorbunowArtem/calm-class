@@ -284,6 +284,7 @@ All settings can be provided via `local.settings.json` locally or Azure App Serv
 | `Telegram__SecretToken` | Secret token verified in `X-Telegram-Bot-Api-Secret-Token` | *(Required)* |
 | `Telegram__BaseUrl` | Telegram Bot API base URL | `https://api.telegram.org` |
 | `CosmosDb__ConnectionString` | Azure Cosmos DB NoSQL connection string | *(Required)* |
+| `CosmosDb__UseInMemory` | Enables frictionless in-memory repository for local dev | `false` |
 | `CosmosDb__DatabaseName` | Cosmos DB database name | `CalmClassDb` |
 | `CosmosDb__ContainerName` | Cosmos DB container name for polls, votes, and members | `Polls` |
 | `QuietHours__StartHour` | Hour (24h format) when quiet hours begin | `20` (8:00 PM) |
@@ -291,6 +292,8 @@ All settings can be provided via `local.settings.json` locally or Azure App Serv
 | `QuietHours__TimeZoneId` | IANA or Windows Timezone identifier | `Europe/Kyiv` |
 | `Poll__DefaultDurationHours` | Default lifespan of a decision poll if omitted by admin | `24` |
 | `Poll__ReminderHoursBeforeExpiry` | Window before poll expiry when reminder is dispatched | `6` |
+
+> For full local onboarding steps, runbooks, and troubleshooting, refer to the [Local Development Setup Guide](docs/setup-guide.md).
 
 ---
 
