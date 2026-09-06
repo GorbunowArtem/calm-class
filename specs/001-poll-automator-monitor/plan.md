@@ -112,6 +112,10 @@ src/
 │   │   │   ├── CreatePoll/
 │   │   │   │   ├── CreatePollCommand.cs
 │   │   │   │   ├── CreatePollResult.cs
+│   │   │   │   ├── CreatePollParameters.cs
+│   │   │   │   ├── CreatePollArgsResolutionResult.cs
+│   │   │   │   ├── ICreatePollArgsParser.cs
+│   │   │   │   ├── CreatePollArgsParser.cs
 │   │   │   │   └── CreatePollCommandHandler.cs
 │   │   │   ├── ClosePoll/
 │   │   │   │   ├── ClosePollCommand.cs

@@ -11,6 +11,7 @@ public static class ApplicationServiceExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
+        services.AddSingleton<ICreatePollArgsParser, CreatePollArgsParser>();
         services.AddScoped<CreatePollCommandHandler>();
         services.AddScoped<ClosePollCommandHandler>();
         services.AddScoped<CancelPollCommandHandler>();
