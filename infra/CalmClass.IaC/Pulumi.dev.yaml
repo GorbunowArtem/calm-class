@@ -1,0 +1,11 @@
+config:
+  azure-native:location: polandcentral
+  CalmClass.IaC:environment: dev
+  CalmClass.IaC:resourcePrefix: calmclassdev
+  CalmClass.IaC:cosmosDatabaseName: CalmClassDb
+  CalmClass.IaC:cosmosContainerName: Polls
+  CalmClass.IaC:quietHoursStartHour: "20"
+  CalmClass.IaC:quietHoursEndHour: "8"
+  CalmClass.IaC:quietHoursTimeZoneId: Europe/Kyiv
+  CalmClass.IaC:telegramBotToken: "placeholder-dev-token"
+  CalmClass.IaC:telegramSecretToken: "placeholder-dev-secret"

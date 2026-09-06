@@ -1,0 +1,114 @@
+name: Production Release
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: prod_environment
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-package:
+    name: Build & Package Production Artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Publish Azure Functions Package
+        run: |
+          dotnet publish src/CalmClass.Functions/CalmClass.Functions.csproj -c Release -o ./publish/functions
+          (cd ./publish/functions && zip -r ../../functions-prod.zip .)
+
+      - name: Upload Release Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: functions-prod
+          path: functions-prod.zip
+          retention-days: 14
+
+  deploy-prod:
+    name: Deploy to Production Environment
+    needs: build-package
+    environment: prod
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Download Release Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: functions-prod
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Azure Login via OIDC Workload Identity
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install Pulumi CLI
+        uses: pulumi/actions@v5
+
+      - name: Pulumi State Login (Azure Blob Storage)
+        run: |
+          pulumi login "azblob://pulumi-state?storage_account=${{ vars.AZURE_STORAGE_ACCOUNT }}"
+
+      - name: Pulumi Up (Reconcile Prod Stack)
+        run: |
+          pulumi up --stack prod --yes --cwd infra/CalmClass.IaC
+
+      - name: Deploy Function App Package (Prod)
+        run: |
+          az functionapp deployment source config-zip \
+            --resource-group rg-calmclass-prod \
+            --name func-calmclass-prod \
+            --src functions-prod.zip
+
+      - name: Register Telegram Webhook (Prod)
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          SECRET_TOKEN: ${{ secrets.TELEGRAM_SECRET_TOKEN }}
+        run: |
+          WEBHOOK_URL="https://func-calmclass-prod.azurewebsites.net/api/telegram/webhook"
+          echo "Registering Telegram webhook for prod environment: $WEBHOOK_URL"
+          
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          SUCCESS=false
+
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
+              -H "Content-Type: application/json" \
+              -d "{\"url\":\"${WEBHOOK_URL}\",\"secret_token\":\"${SECRET_TOKEN}\",\"allowed_updates\":[\"message\",\"poll_answer\"]}")
+
+            if echo "$RESPONSE" | grep -q '"ok":true'; then
+              echo "Production Telegram webhook successfully registered: $RESPONSE"
+              SUCCESS=true
+              break
+            else
+              echo "Webhook registration attempt $((RETRY_COUNT + 1)) failed: $RESPONSE"
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              sleep 5
+            fi
+          done
+
+          if [ "$SUCCESS" != "true" ]; then
+            echo "Failed to register production Telegram webhook after $MAX_RETRIES attempts"
+            exit 1
+          fi
