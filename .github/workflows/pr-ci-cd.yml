@@ -64,6 +64,12 @@ jobs:
     name: Pulumi IaC Preview (Dev)
     needs: validate-and-test
     runs-on: ubuntu-latest
+    env:
+      AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT || vars.AZURE_STORAGE_ACCOUNT }}
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID || vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID || vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID || vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: "true"
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -85,7 +91,11 @@ jobs:
 
       - name: Pulumi State Login (Azure Blob Storage)
         run: |
-          pulumi login "azblob://pulumi-state?storage_account=${{ secrets.AZURE_STORAGE_ACCOUNT || vars.AZURE_STORAGE_ACCOUNT }}"
+          if [ -z "$AZURE_STORAGE_ACCOUNT" ]; then
+            echo "::error::AZURE_STORAGE_ACCOUNT is missing! Please configure AZURE_STORAGE_ACCOUNT in GitHub Repository Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          pulumi login "azblob://pulumi-state?storage_account=$AZURE_STORAGE_ACCOUNT"
 
       - name: Pulumi Preview (Dev Stack)
         run: |
@@ -96,6 +106,12 @@ jobs:
     needs: [validate-and-test, pulumi-preview]
     environment: dev
     runs-on: ubuntu-latest
+    env:
+      AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT || vars.AZURE_STORAGE_ACCOUNT }}
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID || vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID || vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID || vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: "true"
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -122,7 +138,11 @@ jobs:
 
       - name: Pulumi State Login (Azure Blob Storage)
         run: |
-          pulumi login "azblob://pulumi-state?storage_account=${{ secrets.AZURE_STORAGE_ACCOUNT || vars.AZURE_STORAGE_ACCOUNT }}"
+          if [ -z "$AZURE_STORAGE_ACCOUNT" ]; then
+            echo "::error::AZURE_STORAGE_ACCOUNT is missing! Please configure AZURE_STORAGE_ACCOUNT in GitHub Repository Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          pulumi login "azblob://pulumi-state?storage_account=$AZURE_STORAGE_ACCOUNT"
 
       - name: Pulumi Up (Reconcile Dev Stack)
         run: |
