@@ -132,4 +132,17 @@ public class ManualPollClosureTests
         await Assert.That(result.ErrorMessage).IsEqualTo(UkrainianPollMessages.NoActivePollFound);
         _botClientMock.Verify(b => b.SendMessageAsync("-1001", UkrainianPollMessages.NoActivePollFound, "MarkdownV2", false, It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Test]
+    public async Task CancelPoll_ByNonAdmin_RejectsWithUnauthorized()
+    {
+        var handler = new CancelPollCommandHandler(
+            _pollRepoMock.Object, _botClientMock.Object, _timeProviderMock.Object, NullLogger<CancelPollCommandHandler>.Instance);
+
+        var result = await handler.HandleAsync(new CancelPollCommand { ChatId = "-1001", UserId = 200 });
+
+        await Assert.That(result.Success).IsFalse();
+        await Assert.That(result.ErrorMessage).IsEqualTo(UkrainianPollMessages.UnauthorizedAdminOnly);
+        _botClientMock.Verify(b => b.SendMessageAsync("-1001", UkrainianPollMessages.UnauthorizedAdminOnly, "MarkdownV2", false, It.IsAny<CancellationToken>()), Times.Once);
+    }
 }

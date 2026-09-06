@@ -5,7 +5,6 @@ using CalmClass.Application.Domain.Entities;
 using CalmClass.Application.Domain.Enums;
 using Microsoft.Extensions.Logging;
 
-
 public class IngestVoteCommandHandler(
     IPollRepository pollRepository,
     IDateTimeProvider dateTimeProvider,

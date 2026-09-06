@@ -1,6 +1,5 @@
 namespace CalmClass.Application.Common.Interfaces;
 
-
 public interface ITelegramBotClient
 {
     Task<TelegramPollResult> SendPollAsync(

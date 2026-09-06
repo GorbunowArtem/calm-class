@@ -1,10 +1,10 @@
 namespace CalmClass.Application.Features.Polls.Commands.CancelPoll;
 
 using CalmClass.Application.Common.Interfaces;
+using CalmClass.Application.Domain.Entities;
 using CalmClass.Application.Domain.Enums;
 using CalmClass.Application.Features.Polls.Localization;
 using Microsoft.Extensions.Logging;
-
 
 public class CancelPollCommandHandler(
     IPollRepository pollRepository,
@@ -12,36 +12,48 @@ public class CancelPollCommandHandler(
     IDateTimeProvider dateTimeProvider,
     ILogger<CancelPollCommandHandler> logger)
 {
+    private const string CommandName = "/cancel_poll";
+
     public async Task<CancelPollResult> HandleAsync(CancelPollCommand command, CancellationToken cancellationToken = default)
     {
-        // 1. Check authorization
-        var member = await pollRepository.GetMemberAsync(command.ChatId, command.UserId, cancellationToken);
-        if (member == null || !member.IsActive || member.Role != MemberRole.Admin)
+        if (!await IsAuthorizedAdminAsync(command.ChatId, command.UserId, cancellationToken))
         {
-            logger.LogWarning("Unauthorized /cancel_poll attempt by user {UserId} in chat {ChatId}", command.UserId, command.ChatId);
-            await telegramBotClient.SendMessageAsync(
-                command.ChatId,
-                UkrainianPollMessages.UnauthorizedAdminOnly,
-                cancellationToken: cancellationToken);
-            return new CancelPollResult { Success = false, ErrorMessage = UkrainianPollMessages.UnauthorizedAdminOnly };
+            logger.LogWarning("Unauthorized {Command} attempt by user {UserId} in chat {ChatId}", CommandName, command.UserId, command.ChatId);
+            return await FailAsync(command.ChatId, UkrainianPollMessages.UnauthorizedAdminOnly, cancellationToken);
         }
 
-        // 2. Find active poll
-        var poll = await pollRepository.GetActivePollAsync(command.ChatId, cancellationToken);
-        if (poll == null)
+        var activePoll = await pollRepository.GetActivePollAsync(command.ChatId, cancellationToken);
+        if (activePoll == null)
         {
             logger.LogInformation("No active poll found to cancel in chat {ChatId}", command.ChatId);
-            await telegramBotClient.SendMessageAsync(
-                command.ChatId,
-                UkrainianPollMessages.NoActivePollFound,
-                cancellationToken: cancellationToken);
-            return new CancelPollResult { Success = false, ErrorMessage = UkrainianPollMessages.NoActivePollFound };
+            return await FailAsync(command.ChatId, UkrainianPollMessages.NoActivePollFound, cancellationToken);
         }
 
-        // 3. Stop voting in Telegram
+        return await CancelAndNotifyAsync(activePoll, cancellationToken);
+    }
+
+    private async Task<bool> IsAuthorizedAdminAsync(string chatId, long userId, CancellationToken cancellationToken)
+    {
+        var member = await pollRepository.GetMemberAsync(chatId, userId, cancellationToken);
+        return member is { IsActive: true, Role: MemberRole.Admin };
+    }
+
+    private async Task<CancelPollResult> FailAsync(string chatId, string errorMessage, CancellationToken cancellationToken)
+    {
+        await telegramBotClient.SendMessageAsync(
+            chatId,
+            errorMessage,
+            parseMode: "MarkdownV2",
+            disableNotification: false,
+            cancellationToken: cancellationToken);
+
+        return CancelPollResult.Failed(errorMessage);
+    }
+
+    private async Task<CancelPollResult> CancelAndNotifyAsync(TrackedPoll poll, CancellationToken cancellationToken)
+    {
         await telegramBotClient.StopPollAsync(poll.ChatId, poll.MessageId, cancellationToken);
 
-        // 4. Send cancellation message
         await telegramBotClient.SendMessageAsync(
             poll.ChatId,
             UkrainianPollMessages.PollCancelled,
@@ -49,7 +61,6 @@ public class CancelPollCommandHandler(
             disableNotification: false,
             cancellationToken: cancellationToken);
 
-        // 5. Update poll status to Cancelled
         var cancelledPoll = poll with
         {
             ClosedAtUtc = dateTimeProvider.UtcNow,
@@ -57,8 +68,8 @@ public class CancelPollCommandHandler(
         };
 
         await pollRepository.UpdatePollAsync(cancelledPoll, cancellationToken);
-        logger.LogInformation("Cancelled poll {PollId} in chat {ChatId}", poll.PollId, command.ChatId);
+        logger.LogInformation("Cancelled poll {PollId} in chat {ChatId}", poll.PollId, poll.ChatId);
 
-        return new CancelPollResult { Success = true };
+        return CancelPollResult.Succeeded();
     }
 }

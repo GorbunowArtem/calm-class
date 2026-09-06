@@ -1,5 +1,6 @@
 namespace CalmClass.Infrastructure;
 
+using System;
 using CalmClass.Application.Common.Interfaces;
 using CalmClass.Application.Common.Options;
 using CalmClass.Infrastructure.Persistence;
@@ -25,29 +26,38 @@ public static class InfrastructureServiceExtensions
 
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
-        services.AddSingleton(sp =>
+        var cosmosDbSection = configuration.GetSection(CosmosDbOptions.SectionName);
+        var useInMemory = cosmosDbSection.GetValue<bool>(nameof(CosmosDbOptions.UseInMemory));
+        var connectionString = cosmosDbSection.GetValue<string>(nameof(CosmosDbOptions.ConnectionString));
+
+        var shouldUseInMemory = useInMemory
+            || string.IsNullOrWhiteSpace(connectionString)
+            || string.Equals(connectionString, "InMemory", StringComparison.OrdinalIgnoreCase);
+
+        if (shouldUseInMemory)
         {
-            var options = sp.GetRequiredService<IOptions<CalmClassOptions>>().Value.CosmosDb;
-            var connectionString = options.ConnectionString;
-            if (string.IsNullOrWhiteSpace(connectionString))
+            services.AddSingleton<IPollRepository, InMemoryPollRepository>();
+        }
+        else
+        {
+            services.AddSingleton(sp =>
             {
-                // Fallback dummy for tests/local initialization without connection string
-                connectionString = "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
-            }
-
-            return new CosmosClient(connectionString, new CosmosClientOptions
-            {
-                SerializerOptions = new CosmosSerializationOptions
+                var options = sp.GetRequiredService<IOptions<CalmClassOptions>>().Value.CosmosDb;
+                return new CosmosClient(options.ConnectionString, new CosmosClientOptions
                 {
-                    PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
-                }
+                    SerializerOptions = new CosmosSerializationOptions
+                    {
+                        PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
+                    }
+                });
             });
-        });
 
-        services.AddScoped<IPollRepository, CosmosPollRepository>();
+            services.AddScoped<IPollRepository, CosmosPollRepository>();
+        }
 
         services.AddHttpClient<ITelegramBotClient, TelegramBotClient>();
 
         return services;
     }
 }
+

@@ -43,16 +43,14 @@ public class CreatePollCommandHandler(
         }
 
         var resolution = argsParser.ResolveAndValidate(command, options.Value.Poll);
-        if (!resolution.IsSuccess)
+        if (!resolution.IsSuccess || resolution.Parameters == null)
         {
-            return await FailAsync(command.ChatId, resolution.ErrorMessage!, cancellationToken);
+            var errorMessage = resolution.ErrorMessage ?? UkrainianPollMessages.CreatePollUsage;
+            return await FailAsync(command.ChatId, errorMessage, cancellationToken);
         }
 
-        return await PublishAndTrackPollAsync(command.ChatId, resolution.Parameters!, cancellationToken);
+        return await PublishAndTrackPollAsync(command.ChatId, resolution.Parameters, cancellationToken);
     }
-
-    public static (string Question, List<string> Options, int DurationHours)? ParseRawArguments(string raw, int defaultDuration) =>
-        new CreatePollArgsParser().ParseRawTokens(raw, defaultDuration);
 
     private async Task<bool> IsAuthorizedAdminAsync(string chatId, long userId, CancellationToken cancellationToken)
     {
@@ -104,7 +102,7 @@ public class CreatePollCommandHandler(
         };
 
         await pollRepository.CreatePollAsync(trackedPoll, cancellationToken);
-        logger.LogInformation("Created and tracked new poll {PollId} in chat {ChatId}", trackedPoll.PollId, chatId);
+        logger.LogInformation("Successfully executed {Command}: created poll {PollId} in chat {ChatId}", CommandName, trackedPoll.PollId, chatId);
 
         return CreatePollResult.Succeeded(trackedPoll);
     }

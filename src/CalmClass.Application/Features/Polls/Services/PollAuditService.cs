@@ -4,7 +4,6 @@ using CalmClass.Application.Common.Interfaces;
 using CalmClass.Application.Domain.Enums;
 using Microsoft.Extensions.Logging;
 
-
 public class PollAuditService(
     IPollRepository pollRepository,
     ILogger<PollAuditService> logger)
