@@ -47,6 +47,7 @@ jobs:
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID || vars.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID || vars.AZURE_SUBSCRIPTION_ID }}
       ARM_USE_OIDC: "true"
+      PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE || 'calmclass-state-encryption' }}
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
@@ -78,6 +79,7 @@ jobs:
             exit 1
           fi
           pulumi login "azblob://pulumi-state?storage_account=$AZURE_STORAGE_ACCOUNT"
+          pulumi stack select prod --create --non-interactive --cwd infra/CalmClass.IaC
 
       - name: Pulumi Up (Reconcile Prod Stack)
         run: |
