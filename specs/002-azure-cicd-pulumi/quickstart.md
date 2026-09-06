@@ -107,20 +107,22 @@ Validate that code changes opened in a pull request execute the complete CI pipe
 
 Validate that production deployment strictly halts until manual approval is provided:
 
-1. Merge the verified Pull Request into `main`.
-2. Observe GitHub Actions triggering `.github/workflows/prod-deploy.yml`:
+1. Navigate to GitHub Actions -> **Production Release** workflow (`.github/workflows/prod-deploy.yml`).
+2. Click **Run workflow** targeting `main` (or execute `gh workflow run prod-deploy.yml`).
+3. Observe GitHub Actions executing:
    - Job 1 (`build-package`): Packages `functions-prod.zip` and uploads release artifact.
    - Job 2 (`deploy-prod`): Halts in `Waiting for review` status on GitHub Environment `prod`.
-3. In GitHub Actions UI:
-   - Confirm that the production deployment DOES NOT proceed automatically.
+4. In GitHub Actions UI:
+   - Confirm that the production deployment DOES NOT proceed without review.
    - Click **Review deployments**, select `prod`, and click **Approve and deploy**.
-4. Observe the resumed workflow:
+5. Observe the resumed workflow:
    - `azure/login@v2` authenticates with `prod` OIDC credentials.
    - `pulumi up --stack prod --yes` reconciles production infrastructure.
    - Deploys `functions-prod.zip` to `func-calmclass-prod`.
    - Registers production webhook with Telegram.
 
 **Expected Outcome**:
+- Production workflow runs exclusively when manually dispatched.
 - Production deployment occurs exclusively after human approval.
 - An auditable approval event is stamped in GitHub deployment history.
 - Production environment is live and verified.

@@ -104,16 +104,6 @@ permissions:
 name: Production Release
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "src/**"
-      - "infra/**"
-      - "Directory.Build.props"
-      - "Directory.Packages.props"
-      - "CalmClass.slnx"
-      - ".github/workflows/prod-deploy.yml"
   workflow_dispatch:
 
 concurrency:
