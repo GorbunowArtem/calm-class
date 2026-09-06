@@ -53,15 +53,15 @@ As a developer and stakeholder, I want a pull request that successfully passes a
 
 ### User Story 3 - Gated Production Deployment with Manual Approval (Priority: P1)
 
-As a release manager or system owner, I want deployments to the `prod` environment to occur from approved and merged code on `main`, halting at an explicit authorization checkpoint that requires manual approval by an authorized reviewer before applying infrastructure changes and deploying the artifact, so that production stability and user trust are safeguarded against unintended releases.
+As a release manager or system owner, I want deployments to the `prod` environment to occur from approved and merged code on `main` via manual workflow dispatch (without automatic triggers), halting at an explicit authorization checkpoint that requires manual approval by an authorized reviewer before applying infrastructure changes and deploying the artifact, so that production stability and user trust are safeguarded against unintended releases.
 
-**Why this priority**: Production workloads serve active classroom chats and handle sensitive member data. Manual approval ensures deliberate human oversight and operational readiness before any change impacts live users.
+**Why this priority**: Production workloads serve active classroom chats and handle sensitive member data. Manual triggering and explicit manual approval ensure deliberate human oversight and operational readiness before any change impacts live users.
 
-**Independent Test**: Can be tested independently by merging code to `main` and triggering the production deployment workflow. The pipeline halts execution before the `prod` stage, notifying designated approvers. The `prod` deployment proceeds only after approval is granted, or terminates safely if rejected.
+**Independent Test**: Can be tested independently by manually triggering the production deployment workflow (`prod-deploy.yml`) from `main` via `workflow_dispatch`. The pipeline packages the artifact and halts execution before the `prod` stage, notifying designated approvers. The `prod` deployment proceeds only after approval is granted, or terminates safely if rejected.
 
 **Acceptance Scenarios**:
 
-1. **Given** approved changes merged into `main`, **When** the production deployment workflow executes, **Then** the pipeline halts and waits for explicit manual authorization via the production environment gate.
+1. **Given** approved changes merged into `main`, **When** an authorized user manually triggers the production deployment workflow via `workflow_dispatch`, **Then** the release artifact is packaged, and the pipeline halts to wait for explicit manual authorization via the production environment gate.
 2. **Given** an authorized reviewer grants approval on the production gate, **When** the pipeline resumes, **Then** Pulumi executes infrastructure reconciliation against the `prod` stack, and the verified artifact is deployed to the production Azure Function App.
 3. **Given** a successful deployment of infrastructure and code to `prod`, **When** the post-deployment step runs, **Then** the pipeline automatically registers the `prod` Function App webhook endpoint (`/api/telegram/webhook`) with the Telegram Bot API using the `prod` bot token and secret token.
 4. **Given** a reviewer rejects the promotion or the approval window expires, **When** the gate decision is recorded, **Then** the production stage is aborted and the existing production environment remains untouched.
@@ -120,7 +120,7 @@ As a repository maintainer, I want Dependabot configured within the solution to 
 - **FR-005**: When all validation checks (build, test, audit, preview) on a pull request branch succeed, the continuous integration pipeline MUST compile, optimize, and package the application into a deployable release artifact.
 - **FR-006**: The system MUST automatically publish and deploy the release artifact and reconcile infrastructure state for the development (`dev`) environment directly from the passing pull request branch, enabling live cloud verification prior to merge.
 - **FR-007**: The system MUST provide two strictly isolated environments: `dev` and `prod`, maintaining independent resource groups, storage accounts, databases, key vaults, and compute instances.
-- **FR-008**: Deployments targeting the production (`prod`) environment MUST occur only from approved code on the default branch (`main`) and require explicit manual approval from designated authorized reviewers via environment protection gates before any infrastructure changes or artifact deployments occur.
+- **FR-008**: Deployments targeting the production (`prod`) environment MUST NOT have an automatic trigger; they MUST be triggered manually via workflow dispatch (`workflow_dispatch`) from approved code on the default branch (`main`) and require explicit manual approval from designated authorized reviewers via environment protection gates before any infrastructure changes or artifact deployments occur.
 - **FR-009**: All cloud infrastructure resources MUST be declared and managed as code using Pulumi in C# (.NET 10) with the Azure Native provider, storing deployment state and concurrency locks in an Azure Blob Storage backend (`azblob://`) without third-party SaaS dependencies.
 - **FR-010**: The Pulumi infrastructure code MUST provision all required Azure resources inferred from the application:
   - Resource Groups for environment segregation (`dev` and `prod`).
