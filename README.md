@@ -25,6 +25,14 @@
   - [4. Run the Functions Host](#4-run-the-functions-host)
   - [5. Test & Simulate Events Locally](#5-test--simulate-events-locally)
   - [6. Connect Live Telegram Webhook (Optional)](#6-connect-live-telegram-webhook-optional)
+- [Cloud Infrastructure & Azure Deployment](#cloud-infrastructure--azure-deployment)
+  - [Inferred Azure Resources](#inferred-azure-resources)
+  - [Pulumi Infrastructure as Code (.NET 10)](#pulumi-infrastructure-as-code-net-10)
+  - [Azure Portal Setup Runbook](#azure-portal-setup-runbook)
+- [CI/CD Pipelines & Automation](#cicd-pipelines--automation)
+  - [Pull Request CI/CD Quality Gate & Dev Deployment](#pull-request-cicd-quality-gate--dev-deployment)
+  - [Gated Production Release Pipeline](#gated-production-release-pipeline)
+  - [Automated Dependency Health (Dependabot)](#automated-dependency-health-dependabot)
 - [Configuration Reference](#configuration-reference)
 - [Testing & Quality Verification](#testing--quality-verification)
 - [Coding Standards & Conventions](#coding-standards--conventions)
@@ -140,21 +148,34 @@ All commands require authorization; only users registered as committee members o
 ```
 calm-class/
 ├── .editorconfig                 # Strict solution-wide code style & formatting rules
+├── .github/                      # CI/CD Workflows & Dependabot configuration
+│   ├── workflows/
+│   │   ├── pr-ci-cd.yml          # Pull request CI gate & automated dev deployment
+│   │   └── prod-deploy.yml       # Production release pipeline (manual approval gate)
+│   └── dependabot.yml            # Weekly dependency updates (NuGet & GitHub Actions)
 ├── .specify/                     # Spec-Kit constitution, templates, and living memory
 ├── docker-compose.yml            # Local development emulators (Azurite & Cosmos DB)
 ├── Directory.Build.props         # Global MSBuild properties (C# 13 / .NET 10)
 ├── Directory.Packages.props      # Central Package Management (CPM)
+├── infra/                        # Pulumi Infrastructure as Code (.NET 10 / Azure Native)
+│   └── CalmClass.IaC/
+│       ├── CalmClassStack.cs     # 7 Azure resources, Key Vault RBAC, outputs
+│       ├── Program.cs            # Pulumi deployment entrypoint
+│       ├── Pulumi.yaml           # Azure Blob backend (azblob://pulumi-state)
+│       ├── Pulumi.dev.yaml       # Development stack configuration
+│       └── Pulumi.prod.yaml      # Production stack configuration
 ├── scripts/                      # Developer automation and simulation scripts
 │   ├── run-local.sh              # Bootstraps prerequisites, builds, and starts Functions host
 │   ├── register-webhook.sh       # Registers/queries Telegram webhook with ngrok auto-detection
 │   └── simulate-webhook.sh       # Simulates Telegram webhooks (commands, votes, cancellations)
 ├── specs/                        # Spec-Driven Development documentation
-│   └── 001-poll-automator-monitor/
-│       ├── spec.md               # Living feature specification & requirements
-│       ├── plan.md               # Technical architecture & implementation plan
-│       ├── data-model.md         # Database schema & entity mappings
-│       ├── contracts/            # Webhook, bot command, and document contracts
-│       └── quickstart.md         # Quickstart & verification walkthrough
+│   ├── 001-poll-automator-monitor/
+│   │   ├── spec.md               # Feature specification: Telegram poll monitor & automator
+│   │   └── quickstart.md         # Local verification walkthrough
+│   └── 002-azure-cicd-pulumi/
+│       ├── spec.md               # Living spec: Azure CI/CD pipeline & Pulumi IaC
+│       ├── contracts/            # Pipeline, stack configs, and Dependabot contracts
+│       └── quickstart.md         # Cloud verification & scenario testing guide
 ├── src/
 │   ├── CalmClass.Application/    # Clean Architecture: Core domain, CQRS, services, Ukrainian strings
 │   ├── CalmClass.Infrastructure/ # Clean Architecture: Cosmos DB repository, Telegram client, Polly
@@ -269,6 +290,81 @@ To test end-to-end with real Telegram group chats:
    ```bash
    ./scripts/register-webhook.sh --info
    ```
+
+---
+
+## Cloud Infrastructure & Azure Deployment
+
+CalmClass infrastructure is fully automated and codified using **Pulumi C# (.NET 10)** with the `Pulumi.AzureNative` provider. Environments are strictly segregated into:
+- **`dev`**: Pre-merge deployment environment for continuous testing on pull requests.
+- **`prod`**: Production environment protected by manual approval gates.
+
+### Inferred Azure Resources
+
+Each environment provisions an independent set of 7 core cloud resources:
+
+| Resource | Azure Service | Purpose & Configuration |
+| :--- | :--- | :--- |
+| **Resource Group** | `Microsoft.Resources/resourceGroups` | `rg-calmclass-<env>` logical boundary in `polandcentral`. |
+| **Storage Account** | `Microsoft.Storage/storageAccounts` | `stcalmclass<env>` (Standard_LRS) for Azure WebJobs timer lease locks and runtime hosting. |
+| **Serverless Cosmos DB** | `Microsoft.DocumentDB/databaseAccounts` | `cosmos-calmclass-<env>` with database `CalmClassDb` and container `Polls` (`/chatId` partition key). |
+| **Key Vault** | `Microsoft.KeyVault/vaults` | `kv-calmclass-<env>` storing Cosmos connection strings, Application Insights keys, and Telegram bot tokens with Azure RBAC. |
+| **App Insights & Log Analytics** | `Microsoft.Insights/components` | `appi-calmclass-<env>` with Log Analytics workspace for structured logs and telemetry. |
+| **App Service Plan** | `Microsoft.Web/serverfarms` | `asp-calmclass-<env>` Linux Consumption plan (Y1). |
+| **Function App** | `Microsoft.Web/sites` | `func-calmclass-<env>` (.NET 10 Isolated Worker, Linux) with System-Assigned Managed Identity referencing Key Vault secrets. |
+
+### Pulumi Infrastructure as Code (.NET 10)
+
+- **Language & Provider**: C# (.NET 10) targeting `Pulumi.AzureNative 2.x`.
+- **Zero-SaaS State Backend**: State snapshots and concurrency locks are hosted securely in Azure Blob Storage (`azblob://pulumi-state` in `stcalmclassadmin`).
+- **Secret Encryption**: Managed via standard Azure storage encryption without third-party key storage.
+
+### Azure Portal Setup Runbook
+
+> 📖 **Comprehensive Azure Setup Runbook**: For click-by-click instructions, navigation paths, and Azure CLI commands covering Entra ID App Registrations, OIDC Federated Credentials, RBAC roles, and storage account creation, consult the **[Azure Portal Setup Guide](docs/azure-setup-guide.md)**.
+
+---
+
+## CI/CD Pipelines & Automation
+
+CalmClass implements a robust continuous integration and delivery architecture using GitHub Actions and GitHub Dependabot:
+
+```mermaid
+graph TD
+    PR[Pull Request opened/synced] --> CI[Job: validate-and-test<br/>Audit, Compile, 50 Unit Tests]
+    CI --> PREV[Job: pulumi-preview<br/>Dry-run against dev stack]
+    PREV --> DEPLOY_DEV[Job: deploy-dev<br/>Reconcile dev infra + Function zip deploy + register dev webhook]
+    
+    MAIN[Main branch: Manual Dispatch] --> PROD_PKG[Job: build-package<br/>Compile Release Artifact]
+    PROD_PKG --> PROD_GATE{Manual Approval Gate<br/>Environment: prod}
+    PROD_GATE -->|Approved by Reviewer| DEPLOY_PROD[Job: deploy-prod<br/>Reconcile prod infra + Function zip deploy + register prod webhook]
+    PROD_GATE -->|Rejected / Timed out| ABORT[Abort safely; prod unchanged]
+```
+
+### Pull Request CI/CD Quality Gate & Dev Deployment
+- **Workflow**: [`.github/workflows/pr-ci-cd.yml`](.github/workflows/pr-ci-cd.yml)
+- **Trigger**: Automatic on all pull requests targeting `main`.
+- **Phases**:
+  1. `validate-and-test`: Executes Clean Code static audit (`audit.py`), .NET 10 compilation, and 50 TUnit unit tests via direct runner execution.
+  2. `pulumi-preview`: Authenticates via Azure OIDC and renders dry-run infrastructure change summaries.
+  3. `deploy-dev`: Once all tests and preview succeed, packages the application, runs `pulumi up --stack dev --yes`, deploys the Function zip package, and registers the Telegram webhook with Telegram Bot API with exponential retry.
+
+### Gated Production Release Pipeline
+- **Workflow**: [`.github/workflows/prod-deploy.yml`](.github/workflows/prod-deploy.yml)
+- **Trigger**: **Manual dispatch only** (`workflow_dispatch`), **no automatic triggers**.
+- **Protection**: Bound to GitHub Environment `prod` with **Required Reviewers**.
+- **Execution**:
+  1. Operator clicks **Run workflow** on `main`.
+  2. The pipeline compiles and packages `functions-prod.zip`.
+  3. The workflow halts at the `prod` approval gate until an authorized maintainer reviews and approves the release.
+  4. Resumes to execute `pulumi up --stack prod --yes`, zip-deploy to `func-calmclass-prod`, and update the production Telegram webhook.
+
+### Automated Dependency Health (Dependabot)
+- **Configuration**: [`.github/dependabot.yml`](.github/dependabot.yml)
+- **Schedule**: Weekly on Monday at 06:00 Kyiv time.
+- **Ecosystems**:
+  - `nuget`: Monitors and atomically updates `Directory.Packages.props` with grouped PRs for `pulumi-dependencies`, `framework-dependencies`, and `resilience-logging`.
+  - `github-actions`: Scans workflows and updates action versions.
 
 ---
 

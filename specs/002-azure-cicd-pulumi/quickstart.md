@@ -24,6 +24,8 @@ az version          # Expected: 2.50.0+
 python3 --version   # Expected: 3.10+
 ```
 
+> 📖 **Full Azure Portal Runbook**: For a detailed, step-by-step portal walkthrough with screenshots and RBAC requirements, refer to [Azure Portal Setup Guide](../../docs/azure-setup-guide.md).
+
 ### 2.2 Administrative Azure Storage for Pulumi State Backend
 
 Create the dedicated storage container for the `azblob://` state backend:

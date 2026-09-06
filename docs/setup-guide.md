@@ -203,3 +203,13 @@ This validates:
 - Zero consecutive blank lines (`.editorconfig` compliance).
 - No raw regex positional indexing.
 - Zero references to `Newtonsoft.Json` (`System.Text.Json` only).
+
+---
+
+## 7. Cloud Deployment & Azure Onboarding
+
+Once your changes are verified locally, consult the **[Azure Portal Setup & Cloud Provisioning Guide](azure-setup-guide.md)** to:
+- Configure Azure Subscription and Entra ID App Registrations for GitHub Actions OIDC Workload Identity.
+- Provision administrative storage for self-hosted Pulumi state (`azblob://pulumi-state`).
+- Set up GitHub Environments (`dev` and `prod`) with required secrets and manual approval protection rules.
+- Test automated PR deployments to `dev` and gated manual releases to `prod`.
