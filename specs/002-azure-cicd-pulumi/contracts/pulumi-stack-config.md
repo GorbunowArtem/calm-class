@@ -40,7 +40,7 @@ backend:
 
 ```yaml
 config:
-  azure-native:location: polandcentral
+  azure-native:location: westeurope
   CalmClass.IaC:environment: dev
   CalmClass.IaC:resourcePrefix: calmclass-dev
   CalmClass.IaC:cosmosDatabaseName: CalmClassDb
@@ -58,7 +58,7 @@ config:
 
 ```yaml
 config:
-  azure-native:location: polandcentral
+  azure-native:location: westeurope
   CalmClass.IaC:environment: prod
   CalmClass.IaC:resourcePrefix: calmclass-prod
   CalmClass.IaC:cosmosDatabaseName: CalmClassDb
@@ -80,7 +80,7 @@ config:
 
 | Key | Type | Secret | Default / Required | Description |
 | :--- | :--- | :---: | :--- | :--- |
-| `azure-native:location` | `string` | No | `polandcentral` | Target Azure primary region. |
+| `azure-native:location` | `string` | No | `westeurope` | Target Azure primary region. |
 | `environment` | `string` | No | Required (`dev` or `prod`) | Environment identifier used in naming. |
 | `resourcePrefix` | `string` | No | Required | Naming prefix (e.g. `calmclass-dev`). |
 | `cosmosDatabaseName` | `string` | No | `CalmClassDb` | Cosmos SQL database name. |

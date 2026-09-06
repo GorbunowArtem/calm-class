@@ -91,7 +91,7 @@ Pulumi requires a state backend to store infrastructure state snapshots and conc
    - Search for **Resource groups** -> click **+ Create**.
    - **Subscription**: Select your subscription.
    - **Resource group**: `rg-calmclass-admin`.
-   - **Region**: `polandcentral` (or your preferred region, e.g. `westeurope`, `northeurope`).
+   - **Region**: `westeurope` (or another mature region supporting Linux Consumption, e.g. `northeurope`).
    - Click **Review + create** -> **Create**.
 2. **Create Storage Account**:
    - Search for **Storage accounts** -> click **+ Create**.
@@ -113,13 +113,13 @@ Pulumi requires a state backend to store infrastructure state snapshots and conc
 ### Azure CLI Equivalent:
 ```bash
 # 1. Create admin resource group
-az group create --name "rg-calmclass-admin" --location "polandcentral"
+az group create --name "rg-calmclass-admin" --location "westeurope"
 
 # 2. Create storage account
 az storage account create \
   --name "stcalmclassadmin" \
   --resource-group "rg-calmclass-admin" \
-  --location "polandcentral" \
+  --location "westeurope" \
   --sku "Standard_LRS" \
   --allow-blob-public-access false
 

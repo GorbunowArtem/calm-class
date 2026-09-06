@@ -32,7 +32,7 @@ Create the dedicated storage container for the `azblob://` state backend:
 ```bash
 # Set subscription and create administrative storage account
 az account set --subscription "<SUBSCRIPTION_ID>"
-az group create --name "rg-calmclass-admin" --location "polandcentral"
+az group create --name "rg-calmclass-admin" --location "westeurope"
 az storage account create --name "stcalmclassadmin" --resource-group "rg-calmclass-admin" --sku "Standard_LRS"
 az storage container create --name "pulumi-state" --account-name "stcalmclassadmin"
 ```

@@ -305,7 +305,7 @@ Each environment provisions an independent set of 7 core cloud resources:
 
 | Resource | Azure Service | Purpose & Configuration |
 | :--- | :--- | :--- |
-| **Resource Group** | `Microsoft.Resources/resourceGroups` | `rg-calmclass-<env>` logical boundary in `polandcentral`. |
+| **Resource Group** | `Microsoft.Resources/resourceGroups` | `rg-calmclass-<env>` logical boundary in `westeurope`. |
 | **Storage Account** | `Microsoft.Storage/storageAccounts` | `stcalmclass<env>` (Standard_LRS) for Azure WebJobs timer lease locks and runtime hosting. |
 | **Serverless Cosmos DB** | `Microsoft.DocumentDB/databaseAccounts` | `cosmos-calmclass-<env>` with database `CalmClassDb` and container `Polls` (`/chatId` partition key). |
 | **Key Vault** | `Microsoft.KeyVault/vaults` | `kv-calmclass-<env>` storing Cosmos connection strings, Application Insights keys, and Telegram bot tokens with Azure RBAC. |

@@ -1,7 +1,7 @@
 config:
-  azure-native:location: polandcentral
+  azure-native:location: westeurope
   CalmClass.IaC:environment: dev
-  CalmClass.IaC:resourcePrefix: calmclassdev
+  CalmClass.IaC:resourcePrefix: calmclass-dev
   CalmClass.IaC:cosmosDatabaseName: CalmClassDb
   CalmClass.IaC:cosmosContainerName: Polls
   CalmClass.IaC:quietHoursStartHour: "20"
