@@ -79,6 +79,12 @@ jobs:
             exit 1
           fi
           pulumi login "azblob://pulumi-state?storage_account=$AZURE_STORAGE_ACCOUNT"
+          
+          RG_EXISTS=$(az group exists --name "rg-calmclass-prod" -o tsv)
+          if [ "$RG_EXISTS" = "false" ]; then
+            echo "Resource group rg-calmclass-prod does not exist in Azure. Resetting Pulumi prod stack to prevent orphan state mismatch..."
+            pulumi stack rm prod --force --yes --cwd infra/CalmClass.IaC || true
+          fi
           pulumi stack select prod --create --non-interactive --cwd infra/CalmClass.IaC
 
       - name: Pulumi Up (Reconcile Prod Stack)

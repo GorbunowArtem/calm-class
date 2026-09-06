@@ -97,6 +97,12 @@ jobs:
             exit 1
           fi
           pulumi login "azblob://pulumi-state?storage_account=$AZURE_STORAGE_ACCOUNT"
+          
+          RG_EXISTS=$(az group exists --name "rg-calmclass-dev" -o tsv)
+          if [ "$RG_EXISTS" = "false" ]; then
+            echo "Resource group rg-calmclass-dev does not exist in Azure. Resetting Pulumi dev stack to prevent orphan state mismatch..."
+            pulumi stack rm dev --force --yes --cwd infra/CalmClass.IaC || true
+          fi
           pulumi stack select dev --create --non-interactive --cwd infra/CalmClass.IaC
 
       - name: Pulumi Preview (Dev Stack)
@@ -146,6 +152,12 @@ jobs:
             exit 1
           fi
           pulumi login "azblob://pulumi-state?storage_account=$AZURE_STORAGE_ACCOUNT"
+          
+          RG_EXISTS=$(az group exists --name "rg-calmclass-dev" -o tsv)
+          if [ "$RG_EXISTS" = "false" ]; then
+            echo "Resource group rg-calmclass-dev does not exist in Azure. Resetting Pulumi dev stack to prevent orphan state mismatch..."
+            pulumi stack rm dev --force --yes --cwd infra/CalmClass.IaC || true
+          fi
           pulumi stack select dev --create --non-interactive --cwd infra/CalmClass.IaC
 
       - name: Pulumi Up (Reconcile Dev Stack)
