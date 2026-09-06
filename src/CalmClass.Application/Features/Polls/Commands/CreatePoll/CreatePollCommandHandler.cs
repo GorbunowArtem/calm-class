@@ -9,22 +9,6 @@ using CalmClass.Application.Features.Polls.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-public record CreatePollCommand
-{
-    public required string ChatId { get; init; }
-    public required long UserId { get; init; }
-    public string? RawArgs { get; init; }
-    public string? Question { get; init; }
-    public IReadOnlyList<string>? Options { get; init; }
-    public int? DurationHours { get; init; }
-}
-
-public record CreatePollResult
-{
-    public bool Success { get; init; }
-    public string? ErrorMessage { get; init; }
-    public TrackedPoll? Poll { get; init; }
-}
 
 public class CreatePollCommandHandler(
     IPollRepository pollRepository,

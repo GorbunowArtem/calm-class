@@ -20,6 +20,7 @@
 - **Design Pattern:** Clean Architecture
 - **Primary Constructors (MUST):** All classes requiring dependency injection or initialization parameters MUST use C# primary constructors. Redundant private backing fields (e.g. `_field`) and underscore-prefixed parameters/identifiers (`_*`) are prohibited. Reference primary constructor parameters directly using standard camelCase naming.
 - **Using Directive Placement & Sorting (MUST):** In accordance with `.editorconfig` (`csharp_using_directive_placement = inside_namespace:error` and `dotnet_sort_system_directives_first = true`), all `using` directives in C# files MUST be placed inside/below the file-scoped `namespace <Name>;` declaration, with `System` namespaces sorted first. Top-level entry points without a namespace (e.g., `Program.cs`) are the only exception.
+- **Single Type Per File (MUST):** Every class, record, interface, enum, or struct MUST reside in its own dedicated `.cs` file matching the type name. Never declare multiple types within a single file.
 - **Resilience:** Outbound HTTP calls (Telegram API, external webhooks) must use `Polly` policies handling transient HTTP failures (408, 429, 5xx) with jittered exponential backoff respecting Telegram's `retry_after` response header.
 
 ### 2.2 Persistence & State Management

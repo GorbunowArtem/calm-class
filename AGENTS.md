@@ -20,6 +20,11 @@
   - Organize and sort using directives with `System` / `System.*` directives first, followed by other directives alphabetically (`dotnet_sort_system_directives_first = true`).
   - Top-level statement entry points (e.g., `Program.cs`) lacking a namespace declaration are the sole exception.
 
+- **Single Type Per File (Mandatory):**
+  - Every class, record, interface, enum, or struct MUST reside in its own dedicated `.cs` file.
+  - The filename MUST strictly match the type name (e.g., `TelegramPollResult.cs` for `TelegramPollResult`).
+  - Do NOT place multiple types in a single file (e.g., commands, command results, DTOs, options, or domain entities must each have their own independent file).
+
 ## Spec-Driven Development & Living Documentation
 
 - **Living Spec Synchronization:**

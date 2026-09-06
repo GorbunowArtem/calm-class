@@ -5,17 +5,6 @@ using CalmClass.Application.Domain.Enums;
 using CalmClass.Application.Features.Polls.Localization;
 using Microsoft.Extensions.Logging;
 
-public record CancelPollCommand
-{
-    public required string ChatId { get; init; }
-    public required long UserId { get; init; }
-}
-
-public record CancelPollResult
-{
-    public bool Success { get; init; }
-    public string? ErrorMessage { get; init; }
-}
 
 public class CancelPollCommandHandler(
     IPollRepository pollRepository,

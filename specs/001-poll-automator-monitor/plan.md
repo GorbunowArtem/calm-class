@@ -88,10 +88,17 @@ specs/001-poll-automator-monitor/
 src/
 ├── CalmClass.Application/
 │   ├── Common/
-│   │   └── Interfaces/
-│   │       ├── IPollRepository.cs
-│   │       ├── ITelegramBotClient.cs
-│   │       └── IDateTimeProvider.cs
+│   │   ├── Interfaces/
+│   │   │   ├── IPollRepository.cs
+│   │   │   ├── ITelegramBotClient.cs
+│   │   │   ├── TelegramPollResult.cs
+│   │   │   └── IDateTimeProvider.cs
+│   │   └── Options/
+│   │       ├── CalmClassOptions.cs
+│   │       ├── TelegramOptions.cs
+│   │       ├── CosmosDbOptions.cs
+│   │       ├── QuietHoursOptions.cs
+│   │       └── PollOptions.cs
 │   ├── Domain/
 │   │   ├── Entities/
 │   │   │   ├── TrackedPoll.cs
@@ -103,11 +110,26 @@ src/
 │   ├── Features/Polls/
 │   │   ├── Commands/
 │   │   │   ├── CreatePoll/
+│   │   │   │   ├── CreatePollCommand.cs
+│   │   │   │   ├── CreatePollResult.cs
+│   │   │   │   └── CreatePollCommandHandler.cs
 │   │   │   ├── ClosePoll/
+│   │   │   │   ├── ClosePollCommand.cs
+│   │   │   │   ├── ClosePollResult.cs
+│   │   │   │   └── ClosePollCommandHandler.cs
 │   │   │   ├── CancelPoll/
+│   │   │   │   ├── CancelPollCommand.cs
+│   │   │   │   ├── CancelPollResult.cs
+│   │   │   │   └── CancelPollCommandHandler.cs
 │   │   │   └── IngestVote/
+│   │   │       ├── IngestVoteCommand.cs
+│   │   │       ├── IngestVoteResult.cs
+│   │   │       └── IngestVoteCommandHandler.cs
 │   │   └── Services/
 │   │       ├── PollMonitorService.cs
+│   │       ├── PollAuditService.cs
+│   │       ├── PollAuditReport.cs
+│   │       ├── VoterAuditRecord.cs
 │   │       └── Localization/
 │   │           └── UkrainianPollMessages.cs
 │   └── ApplicationServiceExtensions.cs

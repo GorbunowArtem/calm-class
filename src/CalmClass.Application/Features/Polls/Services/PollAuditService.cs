@@ -4,22 +4,6 @@ using CalmClass.Application.Common.Interfaces;
 using CalmClass.Application.Domain.Enums;
 using Microsoft.Extensions.Logging;
 
-public record VoterAuditRecord
-{
-    public required long UserId { get; init; }
-    public required string DisplayName { get; init; }
-    public string? Username { get; init; }
-    public required IReadOnlyList<string> SelectedOptions { get; init; }
-    public required DateTime VotedAtUtc { get; init; }
-}
-
-public record PollAuditReport
-{
-    public required string PollId { get; init; }
-    public required string Question { get; init; }
-    public required PollStatus Status { get; init; }
-    public required IReadOnlyList<VoterAuditRecord> Voters { get; init; }
-}
 
 public class PollAuditService(
     IPollRepository pollRepository,

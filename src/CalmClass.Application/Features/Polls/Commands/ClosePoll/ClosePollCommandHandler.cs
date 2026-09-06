@@ -6,17 +6,6 @@ using CalmClass.Application.Features.Polls.Localization;
 using CalmClass.Application.Features.Polls.Services;
 using Microsoft.Extensions.Logging;
 
-public record ClosePollCommand
-{
-    public required string ChatId { get; init; }
-    public required long UserId { get; init; }
-}
-
-public record ClosePollResult
-{
-    public bool Success { get; init; }
-    public string? ErrorMessage { get; init; }
-}
 
 public class ClosePollCommandHandler(
     IPollRepository pollRepository,
