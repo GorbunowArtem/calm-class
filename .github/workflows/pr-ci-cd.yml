@@ -1,0 +1,205 @@
+name: PR CI/CD & Dev Deployment
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "infra/**"
+      - "Directory.Build.props"
+      - "Directory.Packages.props"
+      - "CalmClass.slnx"
+      - ".github/workflows/pr-ci-cd.yml"
+
+concurrency:
+  group: dev_environment
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate-and-test:
+    name: Validate, Audit & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run Clean Code & Architecture Audit
+        run: |
+          python3 .agents/skills/clean-code-audit/scripts/audit.py
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore Solution Dependencies
+        run: |
+          dotnet restore CalmClass.slnx
+
+      - name: Build Solution (Release)
+        run: |
+          dotnet build CalmClass.slnx --no-restore -c Release
+
+      - name: Execute Application Unit Tests
+        run: |
+          dotnet exec tests/unit/CalmClass.ApplicationTests.Unit/bin/Release/net10.0/CalmClass.ApplicationTests.Unit.dll --output Detailed
+
+      - name: Execute Infrastructure Unit Tests
+        run: |
+          dotnet exec tests/unit/CalmClass.InfrastructureTests.Unit/bin/Release/net10.0/CalmClass.InfrastructureTests.Unit.dll --output Detailed
+
+  pulumi-preview:
+    name: Pulumi IaC Preview (Dev)
+    needs: validate-and-test
+    runs-on: ubuntu-latest
+    env:
+      AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT || vars.AZURE_STORAGE_ACCOUNT }}
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID || vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID || vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID || vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: "true"
+      PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE || 'calmclass-state-encryption' }}
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Azure Login via OIDC Workload Identity
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID || vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID || vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID || vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install Pulumi CLI
+        uses: pulumi/actions@v5
+
+      - name: Pulumi State Login (Azure Blob Storage)
+        run: |
+          if [ -z "$AZURE_STORAGE_ACCOUNT" ]; then
+            echo "::error::AZURE_STORAGE_ACCOUNT is missing! Please configure AZURE_STORAGE_ACCOUNT in GitHub Repository Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          pulumi login "azblob://pulumi-state?storage_account=$AZURE_STORAGE_ACCOUNT"
+          
+          RG_EXISTS=$(az group exists --name "rg-calmclass-dev" -o tsv)
+          if [ "$RG_EXISTS" = "false" ]; then
+            echo "Resource group rg-calmclass-dev does not exist in Azure. Resetting Pulumi dev stack to prevent orphan state mismatch..."
+            pulumi stack rm dev --force --yes --cwd infra/CalmClass.IaC || true
+          fi
+          pulumi stack select dev --create --non-interactive --cwd infra/CalmClass.IaC
+
+      - name: Pulumi Preview (Dev Stack)
+        run: |
+          pulumi preview --stack dev --cwd infra/CalmClass.IaC
+
+  deploy-dev:
+    name: Deploy to Development Environment
+    needs: [validate-and-test, pulumi-preview]
+    environment: dev
+    runs-on: ubuntu-latest
+    env:
+      AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT || vars.AZURE_STORAGE_ACCOUNT }}
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID || vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID || vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID || vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: "true"
+      PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE || 'calmclass-state-encryption' }}
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Publish Azure Functions Package
+        run: |
+          dotnet publish src/CalmClass.Functions/CalmClass.Functions.csproj -c Release -o ./publish/functions
+          (cd ./publish/functions && zip -r ../../functions-dev.zip .)
+
+      - name: Azure Login via OIDC Workload Identity
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID || vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID || vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID || vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install Pulumi CLI
+        uses: pulumi/actions@v5
+
+      - name: Pulumi State Login (Azure Blob Storage)
+        run: |
+          if [ -z "$AZURE_STORAGE_ACCOUNT" ]; then
+            echo "::error::AZURE_STORAGE_ACCOUNT is missing! Please configure AZURE_STORAGE_ACCOUNT in GitHub Repository Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          pulumi login "azblob://pulumi-state?storage_account=$AZURE_STORAGE_ACCOUNT"
+          
+          RG_EXISTS=$(az group exists --name "rg-calmclass-dev" -o tsv)
+          if [ "$RG_EXISTS" = "false" ]; then
+            echo "Resource group rg-calmclass-dev does not exist in Azure. Resetting Pulumi dev stack to prevent orphan state mismatch..."
+            pulumi stack rm dev --force --yes --cwd infra/CalmClass.IaC || true
+          fi
+          pulumi stack select dev --create --non-interactive --cwd infra/CalmClass.IaC
+
+      - name: Pulumi Up (Reconcile Dev Stack)
+        run: |
+          pulumi up --stack dev --yes --cwd infra/CalmClass.IaC
+
+      - name: Deploy Function App Package (Dev)
+        run: |
+          az functionapp deployment source config-zip \
+            --resource-group rg-calmclass-dev \
+            --name func-calmclass-dev \
+            --src functions-dev.zip
+
+      - name: Register Telegram Webhook (Dev)
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          SECRET_TOKEN: ${{ secrets.TELEGRAM_SECRET_TOKEN }}
+        run: |
+          WEBHOOK_URL="https://func-calmclass-dev.azurewebsites.net/api/telegram/webhook"
+          echo "Registering Telegram webhook for dev environment: $WEBHOOK_URL"
+          
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          SUCCESS=false
+
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
+              -H "Content-Type: application/json" \
+              -d "{\"url\":\"${WEBHOOK_URL}\",\"secret_token\":\"${SECRET_TOKEN}\",\"allowed_updates\":[\"message\",\"poll_answer\"]}")
+
+            if echo "$RESPONSE" | grep -q '"ok":true'; then
+              echo "Telegram webhook successfully registered: $RESPONSE"
+              SUCCESS=true
+              break
+            else
+              echo "Webhook registration attempt $((RETRY_COUNT + 1)) failed: $RESPONSE"
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              sleep 5
+            fi
+          done
+
+          if [ "$SUCCESS" != "true" ]; then
+            echo "Failed to register Telegram webhook after $MAX_RETRIES attempts"
+            exit 1
+          fi

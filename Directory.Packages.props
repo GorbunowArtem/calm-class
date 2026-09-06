@@ -35,6 +35,8 @@
         <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
         <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
         <PackageVersion Include="Serilog.ThrowContext" Version="0.1.2" />
+        <PackageVersion Include="Pulumi" Version="3.94.1" />
+        <PackageVersion Include="Pulumi.AzureNative" Version="2.92.0" />
         <PackageVersion Include="System.Text.Json" Version="10.0.1" />
         <PackageVersion Include="TUnit" Version="1.65.68" />
     </ItemGroup>

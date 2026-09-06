@@ -367,3 +367,4 @@ local.settings.json
 .dotnet
 .nuget/
 .azurefunctions/
+.pulumi/
