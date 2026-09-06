@@ -42,6 +42,8 @@ az storage container create --name "pulumi-state" --account-name "stcalmclassadm
 Configure Federated Credentials on an Azure Entra ID App Registration:
 1. Create App Registration: `app-calmclass-cicd`.
 2. Add Federated Credential:
+   - Organization: `GorbunowArtem` (ID: `15319213`)
+   - Repository: `calm-class` (ID: `1357346431`)
    - Issuer: `https://token.actions.githubusercontent.com`
    - Subject: `repo:GorbunowArtem/calm-class:pull_request` (for PR CI/CD)
    - Subject: `repo:GorbunowArtem/calm-class:environment:prod` (for Prod deploy)

@@ -158,9 +158,26 @@ Federated credentials establish trust between GitHub Actions and Microsoft Entra
 1. In `app-calmclass-cicd`, select **Certificates & secrets** in the left menu.
 2. Click the **Federated credentials** tab.
 3. Click **+ Add credential**:
-   - **Federated credential scenario**: Select **GitHub Actions deploying Azure resources**.
-   - **Organization**: `GorbunowArtem` *(or your GitHub organization/username)*.
-   - **Repository**: `calm-class`.
+    - **Federated credential scenario**: Select **GitHub Actions deploying Azure resources**.
+    - **Organization**: `GorbunowArtem` *(or your GitHub organization/username)*.
+    - **Repository**: `calm-class`.
+
+> [!NOTE]
+> **How to get Organization ID and Repository ID**:  
+> In modern Azure Portal interfaces supporting GitHub's immutable subject format, you may be prompted for numeric IDs:
+> - **Organization / User ID for `GorbunowArtem`**: `15319213`
+> - **Repository ID for `calm-class`**: `1357346431`
+>
+> You can retrieve or verify these numeric IDs anytime via:
+> - **GitHub API in your browser or curl**:
+>   - User / Org: `https://api.github.com/users/GorbunowArtem` (look for `"id"`)
+>   - Repository: `https://api.github.com/repos/GorbunowArtem/calm-class` (look for `"id"`)
+> - **GitHub CLI**:
+>   ```bash
+>   gh api users/GorbunowArtem --jq .id        # Returns: 15319213
+>   gh api repos/GorbunowArtem/calm-class --jq .id # Returns: 1357346431
+>   ```
+
 4. Configure **Scenario A: Pull Request Validation & Dev Deploy**:
    - **Entity type**: **Pull request**.
    - **Name**: `gh-actions-calmclass-pr`.
