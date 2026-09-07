@@ -125,19 +125,11 @@ jobs:
 
           while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
             echo "Deploying functions-prod.zip (Attempt $ATTEMPT of $MAX_ATTEMPTS)..."
-            if az functionapp deploy \
-              --resource-group rg-calmclass-prod \
-              --name func-calmclass-prod \
-              --src-path functions-prod.zip \
-              --type zip; then
-              echo "Function App deployment and trigger synchronization succeeded via az functionapp deploy on attempt $ATTEMPT!"
-              DEPLOY_SUCCESS=true
-              break
-            elif az functionapp deployment source config-zip \
+            if az functionapp deployment source config-zip \
               --resource-group rg-calmclass-prod \
               --name func-calmclass-prod \
               --src functions-prod.zip; then
-              echo "Function App deployment and trigger synchronization succeeded via config-zip on attempt $ATTEMPT!"
+              echo "Function App deployment and trigger synchronization succeeded on attempt $ATTEMPT!"
               DEPLOY_SUCCESS=true
               break
             fi

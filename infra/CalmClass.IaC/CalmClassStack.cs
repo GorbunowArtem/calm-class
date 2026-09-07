@@ -275,7 +275,7 @@ public class CalmClassStack : Stack
             SiteConfig = new WebInputs.SiteConfigArgs
             {
                 AlwaysOn = false,
-                LinuxFxVersion = "DOTNET-ISOLATED|10",
+                LinuxFxVersion = "DOTNET-ISOLATED|8.0",
                 Use32BitWorkerProcess = false,
                 Http20Enabled = true,
                 MinTlsVersion = "1.2",
