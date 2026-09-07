@@ -102,6 +102,12 @@ jobs:
           if [ "$RG_EXISTS" = "false" ]; then
             echo "Resource group rg-calmclass-dev does not exist in Azure. Resetting Pulumi dev stack to prevent orphan state mismatch..."
             pulumi stack rm dev --force --yes --cwd infra/CalmClass.IaC || true
+          else
+            COSMOS_STATE=$(az cosmosdb show --name "cosmos-calmclass-dev" --resource-group "rg-calmclass-dev" --query "provisioningState" -o tsv 2>/dev/null || true)
+            if [ "$COSMOS_STATE" = "Failed" ]; then
+              echo "cosmos-calmclass-dev is in Failed provisioning state. Deleting before retry..."
+              az cosmosdb delete --name "cosmos-calmclass-dev" --resource-group "rg-calmclass-dev" --yes
+            fi
           fi
           pulumi stack select dev --create --non-interactive --cwd infra/CalmClass.IaC
           git checkout infra/CalmClass.IaC/Pulumi.dev.yaml
@@ -158,6 +164,12 @@ jobs:
           if [ "$RG_EXISTS" = "false" ]; then
             echo "Resource group rg-calmclass-dev does not exist in Azure. Resetting Pulumi dev stack to prevent orphan state mismatch..."
             pulumi stack rm dev --force --yes --cwd infra/CalmClass.IaC || true
+          else
+            COSMOS_STATE=$(az cosmosdb show --name "cosmos-calmclass-dev" --resource-group "rg-calmclass-dev" --query "provisioningState" -o tsv 2>/dev/null || true)
+            if [ "$COSMOS_STATE" = "Failed" ]; then
+              echo "cosmos-calmclass-dev is in Failed provisioning state. Deleting before retry..."
+              az cosmosdb delete --name "cosmos-calmclass-dev" --resource-group "rg-calmclass-dev" --yes
+            fi
           fi
           pulumi stack select dev --create --non-interactive --cwd infra/CalmClass.IaC
           git checkout infra/CalmClass.IaC/Pulumi.dev.yaml

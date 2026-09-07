@@ -84,6 +84,12 @@ jobs:
           if [ "$RG_EXISTS" = "false" ]; then
             echo "Resource group rg-calmclass-prod does not exist in Azure. Resetting Pulumi prod stack to prevent orphan state mismatch..."
             pulumi stack rm prod --force --yes --cwd infra/CalmClass.IaC || true
+          else
+            COSMOS_STATE=$(az cosmosdb show --name "cosmos-calmclass-prod" --resource-group "rg-calmclass-prod" --query "provisioningState" -o tsv 2>/dev/null || true)
+            if [ "$COSMOS_STATE" = "Failed" ]; then
+              echo "cosmos-calmclass-prod is in Failed provisioning state. Deleting before retry..."
+              az cosmosdb delete --name "cosmos-calmclass-prod" --resource-group "rg-calmclass-prod" --yes
+            fi
           fi
           pulumi stack select prod --create --non-interactive --cwd infra/CalmClass.IaC
           git checkout infra/CalmClass.IaC/Pulumi.prod.yaml

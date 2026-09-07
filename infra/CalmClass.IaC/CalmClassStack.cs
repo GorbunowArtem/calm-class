@@ -114,7 +114,8 @@ public class CalmClassStack : Stack
                 new DocumentDBInputs.LocationArgs
                 {
                     LocationName = resourceGroup.Location,
-                    FailoverPriority = 0
+                    FailoverPriority = 0,
+                    IsZoneRedundant = false
                 }
             }
         });
