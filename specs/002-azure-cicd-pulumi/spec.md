@@ -1,10 +1,17 @@
+---
+status: implemented
+last_updated: 2026-09-07
+---
+
 # Feature Specification: Azure CI/CD Pipeline & Pulumi Infrastructure as Code
 
 **Feature Branch**: `002-azure-cicd-pulumi`
 
 **Created**: 2026-09-06
 
-**Status**: Implemented
+**Last Updated**: 2026-09-07
+
+**Status**: Implemented & Verified Live
 
 **Input**: User description: "add a CI/CD pipeline to build, run tests and deploy the application to Azure. Use Pulumi for infrastructure as code. The application must have two environments: `dev` and `prod`. dependatabot must be present in the solution to keep NuGet and pulumi dependencies up to date. You can infer other required Azure resources from the service itself. If the pull request passed, the final artefact must be published to Azure. All deployments to `prod` must be happening only after the manual approval"
 
