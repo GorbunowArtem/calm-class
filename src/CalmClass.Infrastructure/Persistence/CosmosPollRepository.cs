@@ -4,6 +4,7 @@ using System.Net;
 using CalmClass.Application.Common.Interfaces;
 using CalmClass.Application.Common.Options;
 using CalmClass.Application.Domain.Entities;
+using CalmClass.Application.Domain.Enums;
 using CalmClass.Infrastructure.Persistence.Documents;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
@@ -186,6 +187,24 @@ public class CosmosPollRepository(
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
+            var activeMembers = await GetActiveMembersAsync(chatId, cancellationToken);
+            var hasAdmin = activeMembers.Any(m => m.Role == MemberRole.Admin);
+            if (!hasAdmin)
+            {
+                var admin = new GroupMember
+                {
+                    ChatId = chatId,
+                    UserId = userId,
+                    DisplayName = "Admin",
+                    Role = MemberRole.Admin,
+                    IsActive = true,
+                    JoinedAtUtc = DateTime.UtcNow
+                };
+                await UpsertMemberAsync(admin, cancellationToken);
+                logger?.LogInformation("Cosmos: Auto-registered user {UserId} as Admin for chat {ChatId}", userId, chatId);
+                return admin;
+            }
+
             return null;
         }
     }
