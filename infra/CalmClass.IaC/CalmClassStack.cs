@@ -283,6 +283,8 @@ public class CalmClassStack : Stack
                 {
                     new WebInputs.NameValuePairArgs { Name = "FUNCTIONS_EXTENSION_VERSION", Value = "~4" },
                     new WebInputs.NameValuePairArgs { Name = "FUNCTIONS_WORKER_RUNTIME", Value = "dotnet-isolated" },
+                    new WebInputs.NameValuePairArgs { Name = "SCM_DO_BUILD_DURING_DEPLOYMENT", Value = "false" },
+                    new WebInputs.NameValuePairArgs { Name = "ENABLE_ORYX_BUILD", Value = "false" },
                     new WebInputs.NameValuePairArgs { Name = "AzureWebJobsStorage", Value = storageConnectionString },
                     new WebInputs.NameValuePairArgs { Name = "APPLICATIONINSIGHTS_CONNECTION_STRING", Value = appInsights.ConnectionString },
                     new WebInputs.NameValuePairArgs { Name = "APPINSIGHTS_INSTRUMENTATIONKEY", Value = appInsights.InstrumentationKey },

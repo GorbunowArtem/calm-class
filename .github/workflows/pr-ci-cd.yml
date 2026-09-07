@@ -208,10 +208,21 @@ jobs:
 
       - name: Deploy Function App Package (Dev)
         run: |
-          az functionapp deployment source config-zip \
+          echo "Waiting for Function App host to settle..."
+          sleep 10
+          echo "Deploying functions-dev.zip to func-calmclass-dev via OneDeploy..."
+          if ! az functionapp deploy \
             --resource-group rg-calmclass-dev \
             --name func-calmclass-dev \
-            --src functions-dev.zip
+            --src-path functions-dev.zip \
+            --type zip; then
+            echo "OneDeploy returned failure. Falling back to config-zip with --debug..."
+            az functionapp deployment source config-zip \
+              --resource-group rg-calmclass-dev \
+              --name func-calmclass-dev \
+              --src functions-dev.zip \
+              --debug
+          fi
 
       - name: Register Telegram Webhook (Dev)
         env:
