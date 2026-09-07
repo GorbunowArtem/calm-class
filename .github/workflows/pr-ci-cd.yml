@@ -153,7 +153,7 @@ jobs:
 
       - name: Publish Azure Functions Package
         run: |
-          dotnet publish src/CalmClass.Functions/CalmClass.Functions.csproj -c Release -o ./publish/functions
+          dotnet publish src/CalmClass.Functions/CalmClass.Functions.csproj -c Release -r linux-x64 --self-contained true -o ./publish/functions
           (cd ./publish/functions && zip -r ../../functions-dev.zip .)
 
       - name: Azure Login via OIDC Workload Identity
@@ -219,11 +219,19 @@ jobs:
 
           while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
             echo "Deploying functions-dev.zip (Attempt $ATTEMPT of $MAX_ATTEMPTS)..."
-            if az functionapp deployment source config-zip \
+            if az functionapp deploy \
+              --resource-group rg-calmclass-dev \
+              --name func-calmclass-dev \
+              --src-path functions-dev.zip \
+              --type zip; then
+              echo "Function App deployment and trigger synchronization succeeded via az functionapp deploy on attempt $ATTEMPT!"
+              DEPLOY_SUCCESS=true
+              break
+            elif az functionapp deployment source config-zip \
               --resource-group rg-calmclass-dev \
               --name func-calmclass-dev \
               --src functions-dev.zip; then
-              echo "Function App deployment and trigger synchronization succeeded on attempt $ATTEMPT!"
+              echo "Function App deployment and trigger synchronization succeeded via config-zip on attempt $ATTEMPT!"
               DEPLOY_SUCCESS=true
               break
             fi

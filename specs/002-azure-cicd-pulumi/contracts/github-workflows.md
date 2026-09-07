@@ -86,11 +86,11 @@ permissions:
 - **Steps**:
   1. `actions/checkout@v4`
   2. `actions/setup-dotnet@v4` with .NET 10 SDK
-  3. Publish Functions package: `dotnet publish src/CalmClass.Functions/CalmClass.Functions.csproj -c Release -o ./publish/functions`
+  3. Publish Functions package: `dotnet publish src/CalmClass.Functions/CalmClass.Functions.csproj -c Release -r linux-x64 --self-contained true -o ./publish/functions`
   4. Create deployment zip package: `zip -r functions.zip .` inside `./publish/functions`
   5. `azure/login@v2` with OIDC credentials
   6. `pulumi/actions@v5` login and reconcile: `pulumi up --stack dev --yes --cwd infra/CalmClass.IaC`
-  7. Deploy artifact to Azure Function App: Warm up host and deploy via `az functionapp deployment source config-zip` with automated retry loop for host synchronization.
+  7. Deploy artifact to Azure Function App: Warm up host and deploy via `az functionapp deploy` (ARM OneDeploy) with fallback to `az functionapp deployment source config-zip` across an automated retry loop for host synchronization.
   8. Register Telegram Webhook via post-deployment step:
      - Invoke Telegram API `https://api.telegram.org/bot<TOKEN>/setWebhook` with `url: https://func-calmclass-dev.azurewebsites.net/api/telegram/webhook`, `secret_token: <SECRET>`.
 
@@ -135,7 +135,7 @@ permissions:
 - **Steps**:
   1. `actions/checkout@v4`
   2. `actions/setup-dotnet@v4` with .NET 10 SDK
-  3. Compile & publish: `dotnet publish src/CalmClass.Functions/CalmClass.Functions.csproj -c Release -o ./publish/functions`
+  3. Compile & publish: `dotnet publish src/CalmClass.Functions/CalmClass.Functions.csproj -c Release -r linux-x64 --self-contained true -o ./publish/functions`
   4. Zip artifact: `zip -r functions-prod.zip .` in `./publish/functions`
   5. `actions/upload-artifact@v4` storing `functions-prod.zip`
 
@@ -149,7 +149,7 @@ permissions:
   3. `azure/login@v2` with OIDC credentials configured in `prod` environment
   4. Pulumi Login to Azure Blob Storage backend: `pulumi login azblob://<container>`
   5. Apply infrastructure changes: `pulumi up --stack prod --yes --cwd infra/CalmClass.IaC`
-  6. Deploy verified artifact: Warm up host and deploy via `az functionapp deployment source config-zip` with automated retry loop for host synchronization.
+  6. Deploy verified artifact: Warm up host and deploy via `az functionapp deploy` (ARM OneDeploy) with fallback to `az functionapp deployment source config-zip` across an automated retry loop for host synchronization.
   7. Register Production Telegram Webhook:
      - Invoke Telegram API `setWebhook` with `url: https://func-calmclass-prod.azurewebsites.net/api/telegram/webhook`, `secret_token: <PROD_SECRET>`.
 
