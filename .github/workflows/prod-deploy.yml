@@ -80,9 +80,13 @@ jobs:
           fi
           pulumi login "azblob://pulumi-state?storage_account=$AZURE_STORAGE_ACCOUNT"
           
-          RG_EXISTS=$(az group exists --name "rg-calmclass-prod" -o tsv)
-          if [ "$RG_EXISTS" = "false" ]; then
+          RG_LOCATION=$(az group show --name "rg-calmclass-prod" --query "location" -o tsv 2>/dev/null || true)
+          if [ -z "$RG_LOCATION" ]; then
             echo "Resource group rg-calmclass-prod does not exist in Azure. Resetting Pulumi prod stack to prevent orphan state mismatch..."
+            pulumi stack rm prod --force --yes --cwd infra/CalmClass.IaC || true
+          elif [ "$RG_LOCATION" != "northeurope" ]; then
+            echo "Resource group rg-calmclass-prod exists in $RG_LOCATION but target is northeurope. Deleting old resource group..."
+            az group delete --name "rg-calmclass-prod" --yes
             pulumi stack rm prod --force --yes --cwd infra/CalmClass.IaC || true
           else
             COSMOS_STATE=$(az cosmosdb show --name "cosmos-calmclass-prod" --resource-group "rg-calmclass-prod" --query "provisioningState" -o tsv 2>/dev/null || true)

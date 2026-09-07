@@ -31,7 +31,7 @@ public class CalmClassStack : Stack
     {
         var config = new Config();
         var azureConfig = new Config("azure-native");
-        var location = azureConfig.Get("location") ?? "westeurope";
+        var location = azureConfig.Get("location") ?? "northeurope";
         var environment = config.Get("environment") ?? "dev";
         var prefix = config.Get("resourcePrefix") ?? $"calmclass-{environment}";
         var cosmosDbName = config.Get("cosmosDatabaseName") ?? "CalmClassDb";
