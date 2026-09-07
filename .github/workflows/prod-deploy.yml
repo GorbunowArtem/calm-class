@@ -114,20 +114,34 @@ jobs:
 
       - name: Deploy Function App Package (Prod)
         run: |
-          echo "Waiting for Function App host to settle..."
-          sleep 10
-          echo "Deploying functions-prod.zip to func-calmclass-prod via OneDeploy..."
-          if ! az functionapp deploy \
-            --resource-group rg-calmclass-prod \
-            --name func-calmclass-prod \
-            --src-path functions-prod.zip \
-            --type zip; then
-            echo "OneDeploy returned failure. Falling back to config-zip with --debug..."
-            az functionapp deployment source config-zip \
+          echo "Warming up Function App host..."
+          az functionapp start --resource-group rg-calmclass-prod --name func-calmclass-prod 2>/dev/null || true
+          curl -s -m 5 https://func-calmclass-prod.azurewebsites.net >/dev/null 2>&1 || true
+          sleep 15
+
+          MAX_ATTEMPTS=5
+          ATTEMPT=1
+          DEPLOY_SUCCESS=false
+
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Deploying functions-prod.zip (Attempt $ATTEMPT of $MAX_ATTEMPTS)..."
+            if az functionapp deployment source config-zip \
               --resource-group rg-calmclass-prod \
               --name func-calmclass-prod \
-              --src functions-prod.zip \
-              --debug
+              --src functions-prod.zip; then
+              echo "Function App deployment and trigger synchronization succeeded on attempt $ATTEMPT!"
+              DEPLOY_SUCCESS=true
+              break
+            fi
+
+            echo "Deployment attempt $ATTEMPT encountered host startup/sync delay. Waiting 20s before retry..."
+            sleep 20
+            ATTEMPT=$((ATTEMPT + 1))
+          done
+
+          if [ "$DEPLOY_SUCCESS" != "true" ]; then
+            echo "Deployment failed after $MAX_ATTEMPTS attempts."
+            exit 1
           fi
 
       - name: Register Telegram Webhook (Prod)
