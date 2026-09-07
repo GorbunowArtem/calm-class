@@ -30,8 +30,10 @@ public class CalmClassStack : Stack
     public CalmClassStack()
     {
         var config = new Config();
+        var azureConfig = new Config("azure-native");
+        var location = azureConfig.Get("location") ?? "westeurope";
         var environment = config.Get("environment") ?? "dev";
-        var prefix = config.Get("resourcePrefix") ?? $"calmclass{environment}";
+        var prefix = config.Get("resourcePrefix") ?? $"calmclass-{environment}";
         var cosmosDbName = config.Get("cosmosDatabaseName") ?? "CalmClassDb";
         var cosmosContainer = config.Get("cosmosContainerName") ?? "Polls";
         var quietHoursStart = config.Get("quietHoursStartHour") ?? "20";
@@ -44,6 +46,7 @@ public class CalmClassStack : Stack
         var resourceGroup = new Resources.ResourceGroup($"rg-{prefix}", new Resources.ResourceGroupArgs
         {
             ResourceGroupName = $"rg-{prefix}",
+            Location = location,
             Tags = new Dictionary<string, string>
             {
                 { "Environment", environment },

@@ -86,6 +86,7 @@ jobs:
             pulumi stack rm prod --force --yes --cwd infra/CalmClass.IaC || true
           fi
           pulumi stack select prod --create --non-interactive --cwd infra/CalmClass.IaC
+          git checkout infra/CalmClass.IaC/Pulumi.prod.yaml
 
       - name: Pulumi Up (Reconcile Prod Stack)
         run: |

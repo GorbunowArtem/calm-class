@@ -104,6 +104,7 @@ jobs:
             pulumi stack rm dev --force --yes --cwd infra/CalmClass.IaC || true
           fi
           pulumi stack select dev --create --non-interactive --cwd infra/CalmClass.IaC
+          git checkout infra/CalmClass.IaC/Pulumi.dev.yaml
 
       - name: Pulumi Preview (Dev Stack)
         run: |
@@ -159,6 +160,7 @@ jobs:
             pulumi stack rm dev --force --yes --cwd infra/CalmClass.IaC || true
           fi
           pulumi stack select dev --create --non-interactive --cwd infra/CalmClass.IaC
+          git checkout infra/CalmClass.IaC/Pulumi.dev.yaml
 
       - name: Pulumi Up (Reconcile Dev Stack)
         run: |
