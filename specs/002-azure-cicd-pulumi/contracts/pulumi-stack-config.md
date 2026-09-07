@@ -40,9 +40,10 @@ backend:
 
 ```yaml
 config:
-  azure-native:location: northeurope
+  azure-native:location: swedencentral
   CalmClass.IaC:environment: dev
   CalmClass.IaC:resourcePrefix: calmclass-dev
+  CalmClass.IaC:keyVaultName: kv-calmclass-dev-01
   CalmClass.IaC:cosmosDatabaseName: CalmClassDb
   CalmClass.IaC:cosmosContainerName: Polls
   CalmClass.IaC:quietHoursStartHour: 20
@@ -58,9 +59,10 @@ config:
 
 ```yaml
 config:
-  azure-native:location: northeurope
+  azure-native:location: swedencentral
   CalmClass.IaC:environment: prod
   CalmClass.IaC:resourcePrefix: calmclass-prod
+  CalmClass.IaC:keyVaultName: kv-calmclass-prod-01
   CalmClass.IaC:cosmosDatabaseName: CalmClassDb
   CalmClass.IaC:cosmosContainerName: Polls
   CalmClass.IaC:quietHoursStartHour: 20
@@ -80,9 +82,11 @@ config:
 
 | Key | Type | Secret | Default / Required | Description |
 | :--- | :--- | :---: | :--- | :--- |
-| `azure-native:location` | `string` | No | `northeurope` | Target Azure primary region. |
+| `azure-native:location` | `string` | No | `swedencentral` | Target Azure primary region. |
 | `environment` | `string` | No | Required (`dev` or `prod`) | Environment identifier used in naming. |
 | `resourcePrefix` | `string` | No | Required | Naming prefix (e.g. `calmclass-dev`). |
+| `keyVaultName` | `string` | No | `kv-<resourcePrefix>` | Azure Key Vault globally unique name. |
+| `cosmosLocation` | `string` | No | Primary `location` | Specific Azure region for Cosmos DB account. |
 | `cosmosDatabaseName` | `string` | No | `CalmClassDb` | Cosmos SQL database name. |
 | `cosmosContainerName`| `string` | No | `Polls` | Cosmos SQL container name. |
 | `telegramBotToken` | `string` | Yes | Required | Telegram bot authentication token stored in Key Vault. |

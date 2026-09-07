@@ -98,12 +98,22 @@ jobs:
           fi
           pulumi login "azblob://pulumi-state?storage_account=$AZURE_STORAGE_ACCOUNT"
           
+          # Purge soft-deleted Key Vaults if any exist to prevent 409 VaultAlreadyExists
+          for VAULT in "kv-calmclass-dev" "kv-calmclass-dev-01"; do
+            DELETED_LOC=$(az keyvault list-deleted --query "[?name=='$VAULT'].properties.location" -o tsv 2>/dev/null || true)
+            if [ -n "$DELETED_LOC" ]; then
+              echo "Found soft-deleted Key Vault $VAULT in $DELETED_LOC. Purging..."
+              az keyvault purge --name "$VAULT" --location "$DELETED_LOC" --no-wait || true
+            fi
+          done
+
+          TARGET_LOCATION=$(grep "azure-native:location:" infra/CalmClass.IaC/Pulumi.dev.yaml | awk '{print $2}')
           RG_LOCATION=$(az group show --name "rg-calmclass-dev" --query "location" -o tsv 2>/dev/null || true)
           if [ -z "$RG_LOCATION" ]; then
             echo "Resource group rg-calmclass-dev does not exist in Azure. Resetting Pulumi dev stack to prevent orphan state mismatch..."
             pulumi stack rm dev --force --yes --cwd infra/CalmClass.IaC || true
-          elif [ "$RG_LOCATION" != "northeurope" ]; then
-            echo "Resource group rg-calmclass-dev exists in $RG_LOCATION but target is northeurope. Deleting old resource group..."
+          elif [ "$RG_LOCATION" != "$TARGET_LOCATION" ]; then
+            echo "Resource group rg-calmclass-dev exists in $RG_LOCATION but target is $TARGET_LOCATION. Deleting old resource group..."
             az group delete --name "rg-calmclass-dev" --yes
             pulumi stack rm dev --force --yes --cwd infra/CalmClass.IaC || true
           else
@@ -164,12 +174,22 @@ jobs:
           fi
           pulumi login "azblob://pulumi-state?storage_account=$AZURE_STORAGE_ACCOUNT"
           
+          # Purge soft-deleted Key Vaults if any exist to prevent 409 VaultAlreadyExists
+          for VAULT in "kv-calmclass-dev" "kv-calmclass-dev-01"; do
+            DELETED_LOC=$(az keyvault list-deleted --query "[?name=='$VAULT'].properties.location" -o tsv 2>/dev/null || true)
+            if [ -n "$DELETED_LOC" ]; then
+              echo "Found soft-deleted Key Vault $VAULT in $DELETED_LOC. Purging..."
+              az keyvault purge --name "$VAULT" --location "$DELETED_LOC" --no-wait || true
+            fi
+          done
+
+          TARGET_LOCATION=$(grep "azure-native:location:" infra/CalmClass.IaC/Pulumi.dev.yaml | awk '{print $2}')
           RG_LOCATION=$(az group show --name "rg-calmclass-dev" --query "location" -o tsv 2>/dev/null || true)
           if [ -z "$RG_LOCATION" ]; then
             echo "Resource group rg-calmclass-dev does not exist in Azure. Resetting Pulumi dev stack to prevent orphan state mismatch..."
             pulumi stack rm dev --force --yes --cwd infra/CalmClass.IaC || true
-          elif [ "$RG_LOCATION" != "northeurope" ]; then
-            echo "Resource group rg-calmclass-dev exists in $RG_LOCATION but target is northeurope. Deleting old resource group..."
+          elif [ "$RG_LOCATION" != "$TARGET_LOCATION" ]; then
+            echo "Resource group rg-calmclass-dev exists in $RG_LOCATION but target is $TARGET_LOCATION. Deleting old resource group..."
             az group delete --name "rg-calmclass-dev" --yes
             pulumi stack rm dev --force --yes --cwd infra/CalmClass.IaC || true
           else

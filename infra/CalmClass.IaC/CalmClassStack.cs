@@ -31,9 +31,11 @@ public class CalmClassStack : Stack
     {
         var config = new Config();
         var azureConfig = new Config("azure-native");
-        var location = azureConfig.Get("location") ?? "northeurope";
+        var location = azureConfig.Get("location") ?? "swedencentral";
         var environment = config.Get("environment") ?? "dev";
         var prefix = config.Get("resourcePrefix") ?? $"calmclass-{environment}";
+        var cosmosLocation = config.Get("cosmosLocation") ?? location;
+        var keyVaultNameConfig = config.Get("keyVaultName");
         var cosmosDbName = config.Get("cosmosDatabaseName") ?? "CalmClassDb";
         var cosmosContainer = config.Get("cosmosContainerName") ?? "Polls";
         var quietHoursStart = config.Get("quietHoursStartHour") ?? "20";
@@ -113,7 +115,7 @@ public class CalmClassStack : Stack
             {
                 new DocumentDBInputs.LocationArgs
                 {
-                    LocationName = resourceGroup.Location,
+                    LocationName = cosmosLocation,
                     FailoverPriority = 0,
                     IsZoneRedundant = false
                 }
@@ -183,7 +185,7 @@ public class CalmClassStack : Stack
         });
 
         // 5. Azure Key Vault
-        var keyVaultName = $"kv-{prefix}";
+        var keyVaultName = keyVaultNameConfig ?? $"kv-{prefix}";
         if (keyVaultName.Length > 24)
         {
             keyVaultName = keyVaultName[..24];

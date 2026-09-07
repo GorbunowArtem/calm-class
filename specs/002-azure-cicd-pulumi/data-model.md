@@ -49,7 +49,7 @@ Represents an isolated Microsoft Azure deployment target with its own cloud reso
 | :--- | :--- | :--- |
 | `EnvironmentName` | `string` | Name of the environment: `dev` or `prod`. |
 | `ResourceGroupName` | `string` | Azure Resource Group (e.g. `rg-calmclass-dev`, `rg-calmclass-prod`). |
-| `Location` | `string` | Azure region (e.g. `polandcentral`, `westeurope`). |
+| `Location` | `string` | Azure region (e.g. `swedencentral`, `northeurope`). |
 | `StackName` | `string` | Pulumi stack name corresponding to this environment (`dev`, `prod`). |
 | `FunctionAppName` | `string` | Name of the Azure Function App host. |
 | `RequiresApproval` | `bool` | `false` for `dev`; `true` for `prod`. |
