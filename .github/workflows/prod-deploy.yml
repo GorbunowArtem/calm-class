@@ -109,8 +109,13 @@ jobs:
           git checkout infra/CalmClass.IaC/Pulumi.prod.yaml
 
       - name: Pulumi Up (Reconcile Prod Stack)
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          SECRET_TOKEN: ${{ secrets.TELEGRAM_SECRET_TOKEN }}
         run: |
-          pulumi up --stack prod --yes --cwd infra/CalmClass.IaC
+          pulumi up --stack prod --yes --cwd infra/CalmClass.IaC \
+            -c CalmClass.IaC:telegramBotToken="${BOT_TOKEN}" \
+            -c CalmClass.IaC:telegramSecretToken="${SECRET_TOKEN}"
 
       - name: Deploy Function App Package (Prod)
         run: |

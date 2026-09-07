@@ -3,6 +3,8 @@
         <PackageReference Include="Polly" />
         <PackageReference Include="Microsoft.Extensions.Logging" />
         <PackageReference Include="Microsoft.Azure.Cosmos" />
+        <!-- AzureCosmosDisableNewtonsoftJsonCheck: Required at runtime by Microsoft.Azure.Cosmos internals -->
+        <PackageReference Include="Newtonsoft.Json" />
     </ItemGroup>
 
     <ItemGroup>
