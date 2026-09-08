@@ -1,0 +1,183 @@
+name: Production Release
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: prod_environment
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-package:
+    name: Build & Package Production Artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Publish Azure Functions Package
+        run: |
+          dotnet publish src/CalmClass.Functions/CalmClass.Functions.csproj -c Release -r linux-x64 --self-contained true -o ./publish/functions
+          (cd ./publish/functions && zip -r ../../functions-prod.zip .)
+
+      - name: Upload Release Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: functions-prod
+          path: functions-prod.zip
+          retention-days: 14
+
+  deploy-prod:
+    name: Deploy to Production Environment
+    needs: build-package
+    environment: prod
+    runs-on: ubuntu-latest
+    env:
+      AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT || vars.AZURE_STORAGE_ACCOUNT }}
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID || vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID || vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID || vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: "true"
+      PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE || 'calmclass-state-encryption' }}
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Download Release Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: functions-prod
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Azure Login via OIDC Workload Identity
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID || vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID || vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID || vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install Pulumi CLI
+        uses: pulumi/actions@v5
+
+      - name: Pulumi State Login (Azure Blob Storage)
+        run: |
+          if [ -z "$AZURE_STORAGE_ACCOUNT" ]; then
+            echo "::error::AZURE_STORAGE_ACCOUNT is missing! Please configure AZURE_STORAGE_ACCOUNT in GitHub Repository Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          pulumi login "azblob://pulumi-state?storage_account=$AZURE_STORAGE_ACCOUNT"
+          
+          # Purge soft-deleted Key Vaults if any exist to prevent 409 VaultAlreadyExists
+          for VAULT in "kv-calmclass-prod" "kv-calmclass-prod-01"; do
+            DELETED_LOC=$(az keyvault list-deleted --query "[?name=='$VAULT'].properties.location" -o tsv 2>/dev/null || true)
+            if [ -n "$DELETED_LOC" ]; then
+              echo "Found soft-deleted Key Vault $VAULT in $DELETED_LOC. Purging..."
+              az keyvault purge --name "$VAULT" --location "$DELETED_LOC" --no-wait || true
+            fi
+          done
+
+          TARGET_LOCATION=$(grep "azure-native:location:" infra/CalmClass.IaC/Pulumi.prod.yaml | awk '{print $2}')
+          RG_LOCATION=$(az group show --name "rg-calmclass-prod" --query "location" -o tsv 2>/dev/null || true)
+          if [ -z "$RG_LOCATION" ]; then
+            echo "Resource group rg-calmclass-prod does not exist in Azure. Resetting Pulumi prod stack to prevent orphan state mismatch..."
+            pulumi stack rm prod --force --yes --cwd infra/CalmClass.IaC || true
+          elif [ "$RG_LOCATION" != "$TARGET_LOCATION" ]; then
+            echo "Resource group rg-calmclass-prod exists in $RG_LOCATION but target is $TARGET_LOCATION. Deleting old resource group..."
+            az group delete --name "rg-calmclass-prod" --yes
+            pulumi stack rm prod --force --yes --cwd infra/CalmClass.IaC || true
+          else
+            COSMOS_STATE=$(az cosmosdb show --name "cosmos-calmclass-prod" --resource-group "rg-calmclass-prod" --query "provisioningState" -o tsv 2>/dev/null || true)
+            if [ "$COSMOS_STATE" = "Failed" ]; then
+              echo "cosmos-calmclass-prod is in Failed provisioning state. Deleting before retry..."
+              az cosmosdb delete --name "cosmos-calmclass-prod" --resource-group "rg-calmclass-prod" --yes
+            fi
+          fi
+          pulumi stack select prod --create --non-interactive --cwd infra/CalmClass.IaC
+          git checkout infra/CalmClass.IaC/Pulumi.prod.yaml
+
+      - name: Pulumi Up (Reconcile Prod Stack)
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          SECRET_TOKEN: ${{ secrets.TELEGRAM_SECRET_TOKEN }}
+        run: |
+          pulumi up --stack prod --yes --cwd infra/CalmClass.IaC \
+            -c CalmClass.IaC:telegramBotToken="${BOT_TOKEN}" \
+            -c CalmClass.IaC:telegramSecretToken="${SECRET_TOKEN}"
+
+      - name: Deploy Function App Package (Prod)
+        run: |
+          echo "Warming up Function App host..."
+          az functionapp start --resource-group rg-calmclass-prod --name func-calmclass-prod 2>/dev/null || true
+          curl -s -m 5 https://func-calmclass-prod.azurewebsites.net >/dev/null 2>&1 || true
+          sleep 15
+
+          MAX_ATTEMPTS=5
+          ATTEMPT=1
+          DEPLOY_SUCCESS=false
+
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Deploying functions-prod.zip (Attempt $ATTEMPT of $MAX_ATTEMPTS)..."
+            if az functionapp deployment source config-zip \
+              --resource-group rg-calmclass-prod \
+              --name func-calmclass-prod \
+              --src functions-prod.zip; then
+              echo "Function App deployment and trigger synchronization succeeded on attempt $ATTEMPT!"
+              DEPLOY_SUCCESS=true
+              break
+            fi
+
+            echo "Deployment attempt $ATTEMPT encountered host startup/sync delay. Waiting 20s before retry..."
+            sleep 20
+            ATTEMPT=$((ATTEMPT + 1))
+          done
+
+          if [ "$DEPLOY_SUCCESS" != "true" ]; then
+            echo "Deployment failed after $MAX_ATTEMPTS attempts."
+            exit 1
+          fi
+
+      - name: Register Telegram Webhook (Prod)
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          SECRET_TOKEN: ${{ secrets.TELEGRAM_SECRET_TOKEN }}
+        run: |
+          WEBHOOK_URL="https://func-calmclass-prod.azurewebsites.net/api/telegram/webhook"
+          echo "Registering Telegram webhook for prod environment: $WEBHOOK_URL"
+          
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          SUCCESS=false
+
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
+              -H "Content-Type: application/json" \
+              -d "{\"url\":\"${WEBHOOK_URL}\",\"secret_token\":\"${SECRET_TOKEN}\",\"allowed_updates\":[\"message\",\"poll_answer\"]}")
+
+            if echo "$RESPONSE" | grep -q '"ok":true'; then
+              echo "Production Telegram webhook successfully registered: $RESPONSE"
+              SUCCESS=true
+              break
+            else
+              echo "Webhook registration attempt $((RETRY_COUNT + 1)) failed: $RESPONSE"
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              sleep 5
+            fi
+          done
+
+          if [ "$SUCCESS" != "true" ]; then
+            echo "Failed to register production Telegram webhook after $MAX_RETRIES attempts"
+            exit 1
+          fi

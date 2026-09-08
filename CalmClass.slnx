@@ -18,6 +18,9 @@
     <File Path=".specify/templates/spec-template.md" />
     <File Path=".specify/templates/tasks-template.md" />
   </Folder>
+  <Folder Name="/infra/">
+    <Project Path="infra/CalmClass.IaC/CalmClass.IaC.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/CalmClass.Application/CalmClass.Application.csproj" />
     <Project Path="src/CalmClass.Functions/CalmClass.Functions.csproj" />

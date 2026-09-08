@@ -1,0 +1,5 @@
+name: CalmClass.IaC
+runtime: dotnet
+description: Cloud Infrastructure as Code for CalmClass School Chat Platform (Azure Native)
+backend:
+  url: azblob://pulumi-state

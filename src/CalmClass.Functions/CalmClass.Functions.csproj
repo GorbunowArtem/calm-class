@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
+        <AzureFunctionsVersion>v4</AzureFunctionsVersion>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.Azure.Functions.Worker" />
@@ -44,11 +45,4 @@
         <ProjectReference Include="..\CalmClass.Application\CalmClass.Application.csproj" />
         <ProjectReference Include="..\CalmClass.Infrastructure\CalmClass.Infrastructure.csproj" />
     </ItemGroup>
-    <Target Name="EnsureExtensionsJson" BeforeTargets="EnhanceExtensionsMetadata">
-        <MakeDir Directories="$(IntermediateOutputPath)WorkerExtensions/bin/Release/net8.0/bin" Condition="!Exists('$(IntermediateOutputPath)WorkerExtensions/bin/Release/net8.0/bin')" />
-        <WriteLinesToFile File="$(IntermediateOutputPath)WorkerExtensions/bin/Release/net8.0/bin/extensions.json"
-                          Lines="{&quot;extensions&quot;:[]}"
-                          Overwrite="false"
-                          Condition="!Exists('$(IntermediateOutputPath)WorkerExtensions/bin/Release/net8.0/bin/extensions.json')" />
-    </Target>
 </Project>
