@@ -1,9 +1,9 @@
 <Project>
     <ItemGroup>
         <PackageVersion Include="AutoFixture" Version="4.18.1" />
-        <PackageVersion Include="Microsoft.Azure.Cosmos" Version="3.47.2" />
-        <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="2.50.0" />
-        <PackageVersion Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.7" />
+        <PackageVersion Include="Microsoft.Azure.Cosmos" Version="3.62.1" />
+        <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
+        <PackageVersion Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.1.0" />
         <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.3.0" />
         <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.3.1" />
         <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.11" />
